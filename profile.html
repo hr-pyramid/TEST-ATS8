@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Candidate profile — AI analysis</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f7f8fa;margin:0;padding:24px;color:#1f2937}
+  .card{max-width:780px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden}
+  .head{padding:20px 24px;border-bottom:1px solid #eef0f2;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .kicker{font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px}
+  .name{font-size:22px;font-weight:800;margin-top:2px}
+  .sub{color:#6b7280;font-size:14px;margin-top:2px}
+  .ring{min-width:74px;height:74px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:22px;flex-direction:column}
+  .ring small{font-size:10px;font-weight:600;opacity:.9}
+  .body{padding:20px 24px}
+  .sec{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#475569;margin:18px 0 8px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 18px;font-size:14px}
+  .grid div b{color:#0f1b33}
+  .chip{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:20px;padding:3px 10px;font-size:12px;margin:0 6px 6px 0}
+  ul{margin:6px 0 0;padding-left:18px}li{margin-bottom:4px;font-size:14px}
+  .exp{border-left:2px solid #e5e7eb;padding-left:12px;margin-bottom:10px}
+  .exp .r{font-weight:700}.exp .c{color:#475569;font-size:13px}.exp .d{font-size:13px;color:#374151;margin-top:2px}
+  .pos{color:#16a34a}.neg{color:#b45309}
+  a.btn{display:inline-block;background:#1f6feb;color:#fff;text-decoration:none;border-radius:9px;padding:9px 16px;font-weight:600;font-size:14px;margin-top:6px}
+  .muted{color:#9ca3af}.err{color:#e11d48;text-align:center;padding:40px}
+</style>
+</head>
+<body>
+  <div class="card" id="card"><div class="body"><p class="muted" id="load">Loading candidate profile…</p></div></div>
+
+<script>
+  // ── CONFIG: paste your Apps Script /exec URL (same one the app uses) ──
+  const API_URL = "https://script.google.com/macros/s/AKfycbyolj6zhQxfM7EgS4I5SFQfh-GO8Ofo20ln-c23aek8hpCX9-z561tJXTj62QDg2z-R6w/exec";
+
+  const code = new URLSearchParams(location.search).get('code') || '';
+  const esc = s => s==null?'':String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+  const ringColor = s => s>=75?'#16a34a':s>=50?'#f59e0b':'#ef4444';
+
+  function row(label,val){ return val?`<div><b>${esc(label)}:</b> ${esc(val)}</div>`:''; }
+
+  async function load(){
+    if(!code){ document.getElementById('card').innerHTML='<div class="err">No candidate specified.</div>'; return; }
+    try{
+      const res = await fetch(`${API_URL}?action=candidateByCode&code=${encodeURIComponent(code)}`).then(r=>r.json());
+      if(res.status!=='success'){ document.getElementById('card').innerHTML='<div class="err">Candidate not found.</div>'; return; }
+      render(res.data);
+    }catch(e){ document.getElementById('card').innerHTML='<div class="err">Could not load profile. '+esc(e.message)+'</div>'; }
+  }
+
+  function render(c){
+    let pj={}; try{ pj=JSON.parse(c["Profile JSON"]||'{}'); }catch(e){}
+    const score = parseInt(c["AI Score"])||0;
+    const verdict = pj.verdict || c["Score Notes"] || '';
+    const strengths = Array.isArray(pj.strengths)?pj.strengths:[];
+    const gaps = Array.isArray(pj.gaps)?pj.gaps:[];
+    const exp = Array.isArray(pj.experience)?pj.experience:[];
+    const edu = Array.isArray(pj.education)?pj.education:[];
+    const skills = (pj.Skills||'').split(',').map(s=>s.trim()).filter(Boolean);
+
+    let h = `<div class="head">
+      <div>
+        <div class="kicker">Candidate · AI analysis</div>
+        <div class="name">${esc(c["Candidate Name"]||'Candidate')}</div>
+        <div class="sub">${esc(c["Role"]||c["Designation"]||'')}${c["Current Company"]?' · '+esc(c["Current Company"]):''}</div>
+        <div class="sub">${esc(c["Tagged Job"]?('Tagged to '+c["Tagged Job"]):'')}</div>
+      </div>
+      ${score?`<div class="ring" style="background:${ringColor(score)}">${score}<small>MATCH</small></div>`:''}
+    </div><div class="body">`;
+
+    h += `<div class="grid">
+      ${row('Email', c["Mail Id"])}${row('Phone', c["Contact No"])}
+      ${row('Current CTC', c["Current CTC"]?c["Current CTC"]+' LPA':'')}${row('Expected CTC', c["Expected CTC"]?c["Expected CTC"]+' LPA':'')}
+      ${row('Department', c["Department"])}${row('Status', c["Candidate Status"])}
+    </div>`;
+
+    if(verdict){ h += `<div class="sec">AI verdict</div><div style="font-size:14px">${esc(verdict)}</div>`; }
+    if(strengths.length){ h += `<div class="sec pos">Strengths</div><ul>${strengths.map(s=>`<li class="pos">${esc(s)}</li>`).join('')}</ul>`; }
+    if(gaps.length){ h += `<div class="sec neg">Gaps</div><ul>${gaps.map(s=>`<li class="neg">${esc(s)}</li>`).join('')}</ul>`; }
+    if(pj.Summary){ h += `<div class="sec">Summary</div><div style="font-size:14px">${esc(pj.Summary)}</div>`; }
+    if(skills.length){ h += `<div class="sec">Skills</div><div>${skills.map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div>`; }
+    if(exp.length){ h += `<div class="sec">Experience</div>`+exp.map(x=>`<div class="exp"><div class="r">${esc(x.role||'')}</div><div class="c">${esc(x.company||'')} ${x.start_year||x.end_year?('· '+esc(x.start_year||'')+'–'+esc(x.end_year||'')):''} ${x.duration?('· '+esc(x.duration)):''}</div>${x.description?`<div class="d">${esc(x.description)}</div>`:''}</div>`).join(''); }
+    if(edu.length){ h += `<div class="sec">Education</div><ul>${edu.map(x=>`<li>${esc(x.degree||'')}${x.institution?(' — '+esc(x.institution)):''}${x.year?(' ('+esc(x.year)+')'):''}</li>`).join('')}</ul>`; }
+    if(c["Resume"]){ h += `<div style="margin-top:16px"><a class="btn" href="${esc(c["Resume"])}" target="_blank" rel="noopener">Open résumé (CV)</a></div>`; }
+
+    h += `<p class="muted" style="font-size:12px;margin-top:18px">Shared by the recruiting team via TalentPool ATS. Read-only.</p></div>`;
+    document.getElementById('card').innerHTML = h;
+  }
+  load();
+</script>
+</body>
+</html>

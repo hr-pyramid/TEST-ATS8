@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentPool ATS</title>
+<script>if (localStorage.getItem("portalSession") !== "authenticated") window.location.href = "login.html";</script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+  :root{ --bl:#1763ff; --bl2:#3b82f6; --bld:#0b3fb0; --ink:#0f1b33; --soft:#f1f5fc; }
+  body{background:var(--soft);color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  .topnav{background:linear-gradient(90deg,#0b3fb0,#1763ff);box-shadow:0 2px 16px rgba(13,63,176,.28)}
+  .navbar-brand{font-weight:800;letter-spacing:-.3px}
+  .layout{display:flex;min-height:calc(100vh - 56px)}
+  .sidebar{width:236px;background:#fff;border-right:1px solid #e6ecf8;padding:14px 10px;flex-shrink:0}
+  .sidebar .nav-link{color:#42526e;border-radius:10px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer}
+  .sidebar .nav-link:hover{background:#eef3ff;color:var(--bl)}
+  .sidebar .nav-link.active{background:linear-gradient(90deg,var(--bl),var(--bl2));color:#fff;box-shadow:0 6px 16px rgba(23,99,255,.3)}
+  .main{flex:1;padding:22px;min-width:0}
+  .view{display:none}.view.active{display:block;animation:fade .2s ease}
+  @keyframes fade{from{opacity:.4;transform:translateY(5px)}to{opacity:1;transform:none}}
+  .card{border:none;border-radius:16px;box-shadow:0 4px 18px rgba(15,27,51,.05)}
+  .stat{border-radius:16px;color:#fff;overflow:hidden;position:relative}
+  .stat .v{font-size:1.85rem;font-weight:800;line-height:1}.stat .l{opacity:.92;font-size:.76rem;text-transform:uppercase;letter-spacing:.5px}
+  .stat i{position:absolute;right:10px;bottom:6px;font-size:2.5rem;opacity:.18}
+  .g-blue{background:linear-gradient(135deg,#1763ff,#3b82f6)}.g-cyan{background:linear-gradient(135deg,#0891b2,#22d3ee)}
+  .g-green{background:linear-gradient(135deg,#16a34a,#4ade80)}.g-amber{background:linear-gradient(135deg,#d97706,#fbbf24)}
+  .g-violet{background:linear-gradient(135deg,#7c3aed,#a78bfa)}.g-rose{background:linear-gradient(135deg,#e11d48,#fb7185)}
+  .g-slate{background:linear-gradient(135deg,#475569,#94a3b8)}
+  .sec-title{font-weight:700;font-size:1rem;border-left:4px solid var(--bl);padding-left:10px;margin-bottom:14px}
+  .kcol{background:#fff;border-radius:14px;border-top:4px solid var(--bl);padding:10px;min-height:240px}
+  .kcard{background:#f8faff;border:1px solid #e6ecf8;border-radius:10px;padding:10px;margin-bottom:8px;cursor:grab}
+  .kcard:active{cursor:grabbing}.kcol.drop{outline:2px dashed var(--bl);outline-offset:-4px}
+  .stars{color:#f59e0b;white-space:nowrap}.stars .off{color:#d6deef}
+  .starpick{font-size:1.4rem;color:#d6deef;cursor:pointer;user-select:none}.starpick .on{color:#f59e0b}
+  .r10{font-weight:800;color:#fff;border-radius:7px;padding:1px 8px;font-size:.78rem}
+  .ava{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--bl),var(--bl2));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0}
+  .ccard{transition:.15s}.ccard:hover{transform:translateY(-3px)}
+  .tagchip{background:#eef3ff;color:var(--bl);border-radius:20px;padding:2px 10px;font-size:.72rem;font-weight:700}
+  .dupe-row{background:#fff7ed!important}
+  .upzone{border:2px dashed #b9ccf6;border-radius:14px;background:#f6f9ff;padding:18px}
+  table thead th{background:#0f1b33;color:#fff;font-size:.78rem;white-space:nowrap;border:none}
+  .table>:not(caption)>*>*{padding:.55rem .65rem}
+  .scoring .ring{width:60px;height:60px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem}
+  .btn-primary{background:linear-gradient(135deg,var(--bl),var(--bl2));border:none}.btn-primary:hover{background:var(--bld)}
+  a{color:var(--bl)}
+  .modal-header{background:linear-gradient(90deg,#0b3fb0,#1763ff);color:#fff}.modal-header .btn-close{filter:invert(1)}
+  .modal-xl-form .modal-body{max-height:75vh;overflow:auto}
+  @media(max-width:992px){.sidebar{position:fixed;z-index:1030;height:100%;left:-260px;transition:.25s}.sidebar.open{left:0}}
+  @media(max-width:768px){
+    .main{padding:12px}
+    h4{font-size:1.15rem}
+    .sec-title{font-size:.95rem;margin-bottom:10px}
+    .stat .v{font-size:1.4rem}.stat .l{font-size:.66rem}.stat i{font-size:1.7rem}
+    .stat{padding:.65rem!important}
+    table thead th{font-size:.68rem}
+    .table>:not(caption)>*>*{padding:.4rem .4rem;font-size:.82rem}
+    .btn-sm{padding:.25rem .5rem}
+    .modal-xl-form .modal-body{max-height:84vh}
+    .modal-dialog{margin:.4rem}
+    .ccard:hover{transform:none}
+    .ava{width:40px;height:40px}
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar topnav navbar-dark px-3">
+  <div class="d-flex align-items-center gap-2">
+    <button class="btn btn-sm btn-outline-light d-lg-none" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i class="bi bi-list"></i></button>
+    <span class="navbar-brand mb-0 d-flex align-items-center">
+      <img src="https://lh3.googleusercontent.com/d/1PWsOqZk2FAfbtIqtt6qn4eO5Ljvqh2Lr=w120" onerror="this.style.display='none'" style="height:30px;margin-right:8px;border-radius:6px;background:#fff;padding:2px">
+      <i class="bi bi-people-fill me-1"></i>TalentPool <span class="fw-light">ATS</span></span>
+  </div>
+  <div class="dropdown">
+    <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-person-circle me-1"></i><span id="whoami">user</span></button>
+    <ul class="dropdown-menu dropdown-menu-end">
+      <li><span class="dropdown-item-text small text-muted">Role: <b id="roleLabel"></b></span></li>
+      <li><hr class="dropdown-divider"></li>
+      <li><button class="dropdown-item text-danger" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i>Log out</button></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="nav flex-column">
+      <a class="nav-link active" data-v="dash"  onclick="nav('dash',this)"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+      <a class="nav-link"        data-v="pipe"  onclick="nav('pipe',this)"><i class="bi bi-kanban-fill"></i> Pipeline</a>
+      <a class="nav-link perm"   data-v="jobs"  onclick="nav('jobs',this)"><i class="bi bi-briefcase-fill"></i> Job Postings</a>
+      <a class="nav-link"        data-v="cands" onclick="nav('cands',this)"><i class="bi bi-person-lines-fill"></i> Candidates</a>
+      <a class="nav-link perm"   data-v="screen" onclick="nav('screen',this)"><i class="bi bi-envelope-paper-fill"></i> Screening</a>
+      <a class="nav-link perm"   data-v="feed"   onclick="nav('feed',this)"><i class="bi bi-chat-left-text-fill"></i> Feedback</a>
+      <a class="nav-link perm"   data-v="intv"  onclick="nav('intv',this)"><i class="bi bi-calendar2-check-fill"></i> Interviews</a>
+      <a class="nav-link perm"   data-v="log"    onclick="nav('log',this)"><i class="bi bi-envelope-check-fill"></i> Email Log</a>
+      <a class="nav-link admin"  data-v="admin" onclick="nav('admin',this)"><i class="bi bi-shield-lock-fill"></i> Admin</a>
+      <a class="nav-link"        data-v="kit"   onclick="nav('kit',this)"><i class="bi bi-clipboard-check-fill"></i> Interview Kit</a>
+    </nav>
+    <div class="text-center small text-muted mt-3" id="scopeNote"></div>
+  </aside>
+
+  <main class="main">
+    <div id="loading" class="alert alert-primary py-2 d-none"><span class="spinner-border spinner-border-sm me-2"></span>Syncing…</div>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dash">
+      <h4 class="mb-3 fw-bold">Recruitment overview</h4>
+      <div class="row g-3 mb-3" id="metrics"></div>
+      <div class="row g-3">
+        <div class="col-lg-6"><div class="card p-3"><div class="sec-title">Recruitment funnel</div><div id="funnel"></div></div></div>
+        <div class="col-lg-6"><div class="card p-3"><div class="sec-title">Source / vendor performance</div><div id="sources"></div></div></div>
+        <div class="col-lg-6"><div class="card p-3"><div class="sec-title">Recruiter activity · profiles uploaded</div><div id="recruiters"></div></div></div>
+      </div>
+    </section>
+
+    <!-- PIPELINE -->
+    <section class="view" id="view-pipe">
+      <h4 class="mb-3 fw-bold">Applicant pipeline</h4>
+      <div class="card p-3 mb-3"><div class="row g-2">
+        <div class="col-md-3"><select id="pCompany" class="form-select form-select-sm" onchange="renderBoard()"></select></div>
+        <div class="col-md-3"><select id="pDept" class="form-select form-select-sm" onchange="renderBoard()"></select></div>
+        <div class="col-md-3"><select id="pHM" class="form-select form-select-sm" onchange="renderBoard()"></select></div>
+        <div class="col-md-3"><select id="pJob" class="form-select form-select-sm" onchange="renderBoard()"></select></div>
+      </div></div>
+      <div class="row g-3" id="board"></div>
+      <p class="text-muted small mt-2">Drag a card to advance its stage — saved automatically.</p>
+    </section>
+
+    <!-- CANDIDATES -->
+    <section class="view" id="view-cands">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2"><h4 class="fw-bold mb-0">Candidates</h4>
+          <button id="regCopyBtn" class="btn btn-sm btn-outline-primary" onclick="copyRegLink(this)" title="Copy the candidate self-registration link"><i class="bi bi-link-45deg"></i> Registration link</button></div>
+        <div class="d-flex gap-2 flex-wrap">
+          <div class="btn-group"><button id="vList" class="btn btn-sm btn-primary" onclick="setCandView('list')"><i class="bi bi-list-ul"></i></button>
+            <button id="vGrid" class="btn btn-sm btn-outline-primary" onclick="setCandView('grid')"><i class="bi bi-grid-3x3-gap-fill"></i></button></div>
+          <button class="btn btn-sm btn-success perm" onclick="openCandidate()"><i class="bi bi-person-plus-fill"></i> Add candidate</button>
+          <button class="btn btn-sm btn-dark perm" onclick="openBulk()"><i class="bi bi-cloud-upload-fill"></i> Bulk upload</button>
+          <button class="btn btn-sm btn-outline-primary" onclick="openShare()"><i class="bi bi-envelope-fill"></i> Share selected</button>
+        </div>
+      </div>
+      <div class="card p-3">
+        <div class="row g-2 mb-3">
+          <div class="col-md-4"><input type="search" id="search" class="form-control form-control-sm" placeholder="Search name, role, company, email…" oninput="renderCands()"></div>
+          <div class="col-md-2"><select id="fStage" class="form-select form-select-sm" onchange="renderCands()"></select></div>
+          <div class="col-md-2"><select id="fSource" class="form-select form-select-sm" onchange="renderCands()"></select></div>
+          <div class="col-md-2"><select id="fJob" class="form-select form-select-sm" onchange="renderCands()"></select></div>
+          <div class="col-md-2"><select id="sort" class="form-select form-select-sm" onchange="renderCands()">
+            <option value="score">Match ↓</option><option value="stars">Stars ↓</option><option value="name">Name</option><option value="recent">Row order</option></select></div>
+        </div>
+        <div id="candList" class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead><tr><th><input type="checkbox" id="selAll" class="form-check-input" onclick="toggleSelectAll(this)"></th>
+              <th>Code</th><th>Name</th><th>Match</th><th>Rating</th><th>Role</th><th>Current Co.</th><th>Status</th><th>Tagged Job</th><th>Recruiter</th><th>CV</th><th>Profile</th><th>Actions</th></tr></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div id="candGrid" class="row g-3" style="display:none"></div>
+      </div>
+    </section>
+
+    <!-- JOBS -->
+    <section class="view" id="view-jobs">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h4 class="fw-bold mb-0">Job postings</h4>
+        <div class="d-flex gap-2">
+          <div class="btn-group"><button id="jvList" class="btn btn-sm btn-primary" onclick="setJobView('list')"><i class="bi bi-list-ul"></i></button>
+            <button id="jvGrid" class="btn btn-sm btn-outline-primary" onclick="setJobView('grid')"><i class="bi bi-grid-3x3-gap-fill"></i></button></div>
+          <button class="btn btn-sm btn-outline-secondary perm r-loc" onclick="openLocations()"><i class="bi bi-geo-alt-fill"></i> Locations</button>
+          <button class="btn btn-sm btn-outline-secondary perm r-company" onclick="openCompanies()"><i class="bi bi-building"></i> Companies</button>
+          <button class="btn btn-sm btn-primary perm r-job" onclick="openJob()"><i class="bi bi-plus-lg"></i> Create job post</button>
+        </div>
+      </div>
+      <div class="card p-3">
+        <div class="row g-2 mb-3">
+          <div class="col-md-3"><select id="jfDept" class="form-select form-select-sm" onchange="renderJobs()"></select></div>
+          <div class="col-md-3"><select id="jfHM" class="form-select form-select-sm" onchange="renderJobs()"></select></div>
+          <div class="col-md-3"><select id="jfLoc" class="form-select form-select-sm" onchange="renderJobs()"></select></div>
+          <div class="col-md-3"><select id="jfStatus" class="form-select form-select-sm" onchange="renderJobs()">
+            <option value="">All status</option><option>Open</option><option>On Hold</option><option>Closed</option></select></div>
+        </div>
+        <div id="jobList" class="table-responsive"><table class="table table-hover align-middle">
+          <thead><tr><th>Job ID</th><th>Title</th><th>Dept</th><th>Location</th><th>Hiring Manager</th><th>HOD</th><th>Status</th><th>Applicants</th><th>Actions</th></tr></thead>
+          <tbody id="jobsBody"></tbody></table></div>
+        <div id="jobGrid" class="row g-3" style="display:none"></div>
+      </div>
+    </section>
+
+    <!-- INTERVIEWS -->
+    <section class="view" id="view-intv">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0"><i class="bi bi-calendar2-check-fill text-primary"></i> Interviews</h4>
+        <button class="btn btn-sm btn-primary perm" onclick="openInterview()"><i class="bi bi-calendar-plus"></i> Schedule interview</button>
+      </div>
+      <div class="card p-3"><div class="table-responsive"><table class="table table-hover align-middle">
+        <thead><tr><th>Candidate</th><th>Job</th><th>Round</th><th>When</th><th>Mode</th><th>Panel</th><th>Status</th><th>RSVP / acceptance</th><th>Sync</th><th>Actions</th></tr></thead>
+        <tbody id="ivBody"></tbody></table></div>
+        <p class="text-muted small mb-0 mt-2"><i class="bi bi-info-circle"></i> Saved interviews are synced by the 5-minute scheduler, which emails Google Calendar invites with RSVP to the candidate &amp; panel.</p></div>
+    </section>
+
+    <!-- SCREENING -->
+    <section class="view" id="view-screen">
+      <h4 class="mb-3 fw-bold"><i class="bi bi-envelope-paper-fill text-primary"></i> Screening</h4>
+      <div class="card p-3"><div class="table-responsive"><table class="table table-hover align-middle">
+        <thead><tr><th>Date</th><th>Candidates</th><th>Job</th><th>Hiring Manager</th><th>HOD</th><th>To</th><th>Status</th><th>Sent</th><th>Action</th></tr></thead>
+        <tbody id="screenBody"></tbody></table></div>
+        <p class="text-muted small mb-0 mt-2">Shared shortlists are emailed by the 5-minute screening trigger with a <b>Share feedback</b> link per candidate. Use <i class="bi bi-calendar-plus"></i> to schedule an interview for a shared candidate.</p></div>
+    </section>
+
+    <!-- FEEDBACK -->
+    <section class="view" id="view-feed">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0"><i class="bi bi-chat-left-text-fill text-primary"></i> Feedback</h4>
+        <button class="btn btn-sm btn-outline-primary" onclick="fetchFeedback()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+      </div>
+      <div class="card p-3"><div class="table-responsive"><table class="table table-hover align-middle">
+        <thead><tr><th>Date</th><th>Candidate</th><th>Job</th><th>Reviewer</th><th>Rating</th><th>Decision</th><th>Comments</th></tr></thead>
+        <tbody id="feedBody"></tbody></table></div>
+        <p class="text-muted small mb-0 mt-2">Responses submitted by hiring managers from the screening email land here. Each submitter is emailed a confirmation with a link to revise or add more (the feedback loop).</p></div>
+    </section>
+
+    <!-- EMAIL LOG -->
+    <section class="view" id="view-log">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0"><i class="bi bi-envelope-check-fill text-primary"></i> Email log</h4>
+        <button class="btn btn-sm btn-outline-primary" onclick="fetchEmailLog()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+      </div>
+      <div class="card p-3"><div class="table-responsive"><table class="table table-hover align-middle">
+        <thead><tr><th>Time</th><th>Type</th><th>To</th><th>CC</th><th>Subject</th><th>Status</th><th>Ref</th></tr></thead>
+        <tbody id="logBody"></tbody></table></div>
+        <p class="text-muted small mb-0 mt-2">Every interview invite, screening email and feedback confirmation sent by the system is recorded here.</p></div>
+    </section>
+
+    <!-- ADMIN -->
+    <section class="view" id="view-admin">
+      <h4 class="mb-3 fw-bold"><i class="bi bi-shield-lock-fill text-primary"></i> Admin · users &amp; rights</h4>
+      <div class="card p-3 mb-3">
+        <div class="sec-title">Add / edit user</div>
+        <input type="hidden" id="userRow">
+        <div class="row g-2">
+          <div class="col-md-3"><label class="form-label small fw-semibold">Username</label><input class="form-control form-control-sm" id="uName"></div>
+          <div class="col-md-3"><label class="form-label small fw-semibold">Password <span class="text-muted">(blank=keep)</span></label><input class="form-control form-control-sm" id="uPass"></div>
+          <div class="col-md-2"><label class="form-label small fw-semibold">Role</label><select class="form-select form-select-sm" id="uRole"><option>Recruiter</option><option>Admin</option><option>Viewer</option></select></div>
+          <div class="col-md-4"><label class="form-label small fw-semibold">Assigned jobs (viewing rights)</label><select class="form-select form-select-sm" id="uJobs" multiple size="3"></select></div>
+          <div class="col-12"><label class="form-label small fw-semibold d-block">Assignable rights</label>
+            <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="rJob"><label class="form-check-label small" for="rJob">Create job posts (auto-tagged to them, admin-approved)</label></div>
+            <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="rLoc"><label class="form-check-label small" for="rLoc">Create locations</label></div>
+            <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="rCompany"><label class="form-check-label small" for="rCompany">Create companies</label></div>
+            <div class="form-text small">Admins always have every right. These apply to Recruiters.</div></div>
+        </div>
+        <div class="text-end mt-2">
+          <button class="btn btn-sm btn-light" id="userCancel" style="display:none" onclick="resetUserForm()">Cancel</button>
+          <button class="btn btn-sm btn-warning text-white" id="userUpdate" style="display:none" onclick="saveUser('userUpdate',this)">Update user</button>
+          <button class="btn btn-sm btn-primary" id="userSubmit" onclick="saveUser('userCreate',this)"><i class="bi bi-person-plus"></i> Create user</button>
+        </div>
+      </div>
+      <div class="card p-3"><div class="table-responsive"><table class="table table-hover align-middle">
+        <thead><tr><th>Username</th><th>Role</th><th>Assigned jobs</th><th>Rights</th><th>Actions</th></tr></thead><tbody id="usersBody"></tbody></table></div></div>
+
+      <div class="card p-3 mt-3">
+        <div class="sec-title">Source options</div>
+        <p class="text-muted small">These appear in the <b>Source</b> dropdown on the candidate form and bulk upload. Choosing <b>Reference</b> reveals a free-text box (stored as “Reference - …”).</p>
+        <div class="row g-2 align-items-end mb-2">
+          <div class="col-md-5"><label class="form-label small fw-semibold">Add a source</label><input class="form-control form-control-sm" id="newSource" placeholder="e.g. Instahyre"></div>
+          <div class="col-auto"><button class="btn btn-sm btn-primary" onclick="addSource()"><i class="bi bi-plus-lg"></i> Add</button></div>
+        </div>
+        <div id="sourcesAdmin"></div>
+      </div>
+    </section>
+
+    <!-- INTERVIEW KIT -->
+    <section class="view" id="view-kit">
+      <h4 class="mb-3 fw-bold">AI interview kit</h4>
+      <div class="card p-3">
+        <p class="text-muted small">Generates role-based screening questions and a weighted scorecard.</p>
+        <div class="row g-2">
+          <div class="col-md-4"><input class="form-control form-control-sm" id="kitRole" placeholder="Role / title"></div>
+          <div class="col-md-8"><textarea class="form-control form-control-sm" id="kitJd" rows="2" placeholder="Job description (optional)"></textarea></div>
+        </div>
+        <button class="btn btn-sm btn-primary mt-2" onclick="generateKit(this)"><i class="bi bi-stars"></i> Generate kit</button>
+        <div id="kitStatus" class="small mt-2"></div><div id="kitOut" class="mt-2"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ MODALS ============ -->
+<!-- CANDIDATE -->
+<div class="modal fade modal-xl-form" id="candidateModal" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="candTitle">Add candidate</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div class="upzone text-center mb-3" id="dropZone">
+      <i class="bi bi-cloud-arrow-up-fill fs-2 text-primary"></i>
+      <div class="fw-semibold">Drag &amp; drop a resume — auto-parses on drop</div>
+      <input type="text" id="apiKey" class="d-none" oninput="localStorage.setItem('geminiKey',this.value)">
+      <div class="row g-2 align-items-end justify-content-center mt-1">
+        <div class="col-md-6"><input type="file" id="resumeFile" class="form-control form-control-sm" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" onchange="onFilePicked(true)"></div>
+        <div class="col-md-3 d-grid"><button class="btn btn-sm btn-dark" onclick="parseSelectedResume(this)"><i class="bi bi-magic"></i> Parse</button></div>
+        <div class="col-md-3 d-grid"><button class="btn btn-sm btn-outline-primary" onclick="scoreSelectedResume(this)"><i class="bi bi-graph-up"></i> Score</button></div>
+      </div>
+      <textarea id="jd" class="form-control form-control-sm mt-2 text-start" rows="2" placeholder="Paste a JD to enable AI scoring / matching…"></textarea>
+      <div id="parseStatus" class="small mt-2 text-start"></div><div id="scoreStatus" class="small text-start"></div>
+    </div>
+    <div id="scorebox" class="scoring mb-3" style="display:none"></div>
+    <div id="dupeWarn" class="alert alert-warning py-2 small" style="display:none"></div>
+    <input type="hidden" id="rowNumber"><input type="hidden" id="Resume"><input type="hidden" id="Tagged Job"><input type="hidden" id="Profile JSON"><input type="hidden" id="Stars"><input type="hidden" id="Added By">
+    <div class="row g-2">
+      <div class="col-md-3"><label class="form-label small fw-semibold">Candidate Code</label><input class="form-control form-control-sm bg-light" id="Candidate Code" readonly></div>
+      <div class="col-md-5"><label class="form-label small fw-semibold">Job posting (auto-fills JD &amp; tags)</label><select id="jobSelect" class="form-select form-select-sm" onchange="onJobPicked()"></select></div>
+      <div class="col-md-4 d-grid align-self-end"><button class="btn btn-sm btn-outline-primary" onclick="autoTagBestJob(this)"><i class="bi bi-stars"></i> Auto-match best job</button></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Candidate Name</label><input class="form-control form-control-sm" id="Candidate Name"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Current Company</label><input class="form-control form-control-sm" id="Current Company"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Position ID</label><input class="form-control form-control-sm" id="Position ID"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Role</label><input class="form-control form-control-sm" id="Role"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Designation</label><input class="form-control form-control-sm" id="Designation"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Department</label><input class="form-control form-control-sm" id="Department"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Contact No</label><input class="form-control form-control-sm" id="Contact No" oninput="checkDupe()"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Mail Id</label><input class="form-control form-control-sm" id="Mail Id" type="email" oninput="checkDupe()"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Status</label><select id="Candidate Status" class="form-select form-select-sm"><option>Applied</option><option>Interviewing</option><option>Offered</option><option>Joined</option><option>Rejected</option></select></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">AI Match (/100)</label><input type="number" class="form-control form-control-sm" id="AI Score" oninput="syncRatings()"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Rating (/10)</label><input type="number" class="form-control form-control-sm" id="Rating10" step="0.5"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold d-block">Stars</label><div id="starPick" class="starpick"></div></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Source</label><select class="form-select form-select-sm" id="Source" onchange="onSourceChange('Source','sourceRefWrap')"></select></div>
+      <div class="col-md-3" id="sourceRefWrap" style="display:none"><label class="form-label small fw-semibold">Reference name / detail</label><input class="form-control form-control-sm" id="SourceRef" placeholder="e.g. referred by Asha Rao"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Interview Date</label><input type="date" class="form-control form-control-sm" id="Interview Date"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Offered Date</label><input type="date" class="form-control form-control-sm" id="Offered Date"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Date of Joining</label><input type="date" class="form-control form-control-sm" id="Date of Joining"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Offer Acceptance</label><select id="Offer Acceptance" class="form-select form-select-sm"><option>Pending</option><option>Accepted</option><option>Declined</option></select></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Current CTC <span class="text-muted">(LPA)</span></label><input type="number" step="0.1" class="form-control form-control-sm" id="Current CTC"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Expected CTC <span class="text-muted">(LPA)</span></label><input type="number" step="0.1" class="form-control form-control-sm" id="Expected CTC"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">CTC <span class="text-muted">(offered)</span></label><input type="number" class="form-control form-control-sm" id="CTC"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Variable</label><input class="form-control form-control-sm" id="variable"></div>
+      <div class="col-12"><label class="form-label small fw-semibold">AI Matching Remarks</label><input class="form-control form-control-sm" id="Score Notes"></div>
+      <div class="col-12"><label class="form-label small fw-semibold">Feedback / Remarks</label><input class="form-control form-control-sm" id="Remarks"></div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-sm btn-outline-secondary me-auto" onclick="downloadProfileFromForm()"><i class="bi bi-filetype-html"></i> HTML profile</button>
+    <button class="btn btn-sm btn-light" data-bs-dismiss="modal">Close</button>
+    <button class="btn btn-sm btn-warning text-white" id="updateBtn" style="display:none" onclick="saveRecord('update',this)">Update</button>
+    <button class="btn btn-sm btn-primary" id="submitBtn" onclick="saveRecord('create',this)"><i class="bi bi-check-lg"></i> Register candidate</button>
+  </div>
+</div></div></div>
+
+<!-- JOB -->
+<div class="modal fade" id="jobModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="jobTitle">Create job post</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="jobRow">
+    <div class="row g-2">
+      <div class="col-md-3"><label class="form-label small fw-semibold">Job ID</label><input class="form-control form-control-sm" id="Job ID" placeholder="ENG-014"></div>
+      <div class="col-md-6"><label class="form-label small fw-semibold">Job Title</label><input class="form-control form-control-sm" id="Job Title"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Department</label><input class="form-control form-control-sm" id="Job Department"></div>
+      <div class="col-md-6"><label class="form-label small fw-semibold">Location</label><select class="form-select form-select-sm" id="Location" onchange="onJobLoc()"></select></div>
+      <div class="col-md-6"><label class="form-label small fw-semibold">Location link</label><input class="form-control form-control-sm bg-light" id="jobLocLink" readonly></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Hiring Manager</label><input class="form-control form-control-sm" id="Hiring Manager"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">HM Email</label><input class="form-control form-control-sm" id="HM Email" type="email"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">HOD</label><input class="form-control form-control-sm" id="HOD"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">HOD Email</label><input class="form-control form-control-sm" id="HOD Email" type="email"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Status</label><select class="form-select form-select-sm" id="Status"><option>Open</option><option>On Hold</option><option>Closed</option></select></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Experience min <span class="text-muted">(yrs)</span></label><input type="number" step="0.5" class="form-control form-control-sm" id="Exp Min"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Experience max <span class="text-muted">(yrs)</span></label><input type="number" step="0.5" class="form-control form-control-sm" id="Exp Max"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">CTC min <span class="text-muted">(LPA)</span></label><input type="number" step="0.5" class="form-control form-control-sm" id="CTC Min"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">CTC max <span class="text-muted">(LPA)</span></label><input type="number" step="0.5" class="form-control form-control-sm" id="CTC Max"></div>
+      <div class="col-md-9"><label class="form-label small fw-semibold">Key skills / inputs for AI JD</label><input class="form-control form-control-sm" id="jdKeys" placeholder="5+ yrs, Node.js, AWS, fintech"></div>
+      <div class="col-12"><label class="form-label small fw-semibold d-flex justify-content-between">Job Description
+        <button class="btn btn-sm btn-outline-primary py-0" onclick="generateJD(this)"><i class="bi bi-stars"></i> Generate with AI</button></label>
+        <textarea class="form-control form-control-sm" id="JD" rows="5"></textarea><div id="jdStatus" class="small mt-1"></div></div>
+    </div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-sm btn-light" data-bs-dismiss="modal">Close</button>
+    <button class="btn btn-sm btn-warning text-white" id="jobUpdate" style="display:none" onclick="saveJob('update',this)">Update</button>
+    <button class="btn btn-sm btn-primary" id="jobSubmit" onclick="saveJob('create',this)">Create posting</button></div>
+</div></div></div>
+
+<!-- INTERVIEW -->
+<div class="modal fade" id="interviewModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="ivTitle">Schedule interview</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="ivRow"><input type="hidden" id="ivEventId"><input type="hidden" id="ivJobId"><input type="hidden" id="ivResume">
+    <div class="row g-2">
+      <div class="col-md-6"><label class="form-label small fw-semibold">Candidate</label><select class="form-select form-select-sm" id="ivCand" onchange="onIvCandPicked()"></select></div>
+      <div class="col-md-6"><label class="form-label small fw-semibold">Candidate email</label><input class="form-control form-control-sm" id="ivEmail" type="email"></div>
+      <div class="col-md-6"><label class="form-label small fw-semibold">Job</label><input class="form-control form-control-sm bg-light" id="ivJobTitle" readonly placeholder="auto from candidate"></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Round</label><select class="form-select form-select-sm" id="ivRound"><option>Primary</option><option>Managerial</option><option>Final</option></select></div>
+      <div class="col-md-3"><label class="form-label small fw-semibold">Mode</label><select class="form-select form-select-sm" id="ivMode"><option>Online</option><option>In-person</option><option>Phone</option></select></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Date</label><input type="date" class="form-control form-control-sm" id="ivDate" onchange="ivDatePrev()"><div class="small text-muted mt-1" id="ivDatePrevLbl"></div></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Time</label><input type="time" class="form-control form-control-sm" id="ivTime"></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Duration (min)</label><input type="number" class="form-control form-control-sm" id="ivDur" value="45"></div>
+      <div class="col-12"><label class="form-label small fw-semibold mb-1 d-block">Invite / CC</label>
+        <div class="row g-2 align-items-center">
+          <div class="col-auto"><div class="form-check mb-0"><input class="form-check-input" type="checkbox" id="ccMgr" checked><label class="form-check-label small" for="ccMgr">Manager</label></div></div>
+          <div class="col"><input class="form-control form-control-sm" id="ccMgrEmail" type="email" placeholder="manager@company.com"></div>
+          <div class="col-auto"><div class="form-check mb-0"><input class="form-check-input" type="checkbox" id="ccHod" checked><label class="form-check-label small" for="ccHod">HOD</label></div></div>
+          <div class="col"><input class="form-control form-control-sm" id="ccHodEmail" type="email" placeholder="hod@company.com"></div>
+          <div class="col-12 mt-1"><label class="form-label small">Additional panel emails (comma separated)</label><input class="form-control form-control-sm" id="ivPanel" placeholder="panel1@company.com, panel2@company.com"></div>
+        </div></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Company</label><select class="form-select form-select-sm" id="ivCompany" onchange="onIvVenue('company')"></select></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Location</label><select class="form-select form-select-sm" id="ivLocSel" onchange="onIvVenue('location')"></select></div>
+      <div class="col-md-4"><label class="form-label small fw-semibold">Map link</label><input class="form-control form-control-sm" id="ivMapLink" placeholder="https://maps…"></div>
+      <div class="col-12"><label class="form-label small fw-semibold">Venue address <span class="text-muted">(sent to the calendar invite)</span></label><input class="form-control form-control-sm" id="ivAddr" placeholder="Full address — Google shows a map pin"></div>
+      <div class="col-12"><label class="form-label small fw-semibold">Notes (added to invite)</label><textarea class="form-control form-control-sm" id="ivNotes" rows="3"></textarea></div>
+    </div>
+    <p class="text-muted small mt-2 mb-0"><i class="bi bi-info-circle"></i> The 5-minute scheduler creates one Google Calendar invite (real Yes/Maybe/No RSVP). Ticked Manager/HOD + panel emails are invited alongside the candidate.</p>
+  </div>
+  <div class="modal-footer"><button class="btn btn-sm btn-light" data-bs-dismiss="modal">Close</button>
+    <button class="btn btn-sm btn-warning text-white" id="ivUpdate" style="display:none" onclick="saveInterview('update',this)">Reschedule / update</button>
+    <button class="btn btn-sm btn-primary" id="ivSubmit" onclick="saveInterview('create',this)">Schedule</button></div>
+</div></div></div>
+
+<!-- PROFILE (A4 print) -->
+<div class="modal fade" id="profileModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Candidate profile</h5>
+    <button class="btn btn-sm btn-light me-2" onclick="printProfile()"><i class="bi bi-printer-fill"></i> Print A4 / PDF</button>
+    <button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body p-0"><iframe id="profileFrame" style="width:100%;height:70vh;border:none"></iframe></div>
+</div></div></div>
+
+<!-- SHARE / SCREENING -->
+<div class="modal fade" id="shareModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Share for screening</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div class="row g-2 mb-2">
+      <div class="col-md-6"><label class="form-label small fw-semibold">To</label><input class="form-control form-control-sm" id="shTo"></div>
+      <div class="col-md-6"><label class="form-label small fw-semibold">CC</label><input class="form-control form-control-sm" id="shCC"></div>
+      <div class="col-12"><label class="form-label small fw-semibold">Subject</label><input class="form-control form-control-sm" id="shSubject"></div>
+    </div>
+    <div class="sec-title">Candidates in this shortlist</div>
+    <div class="table-responsive"><table class="table table-sm"><thead><tr><th>Name</th><th>Role</th><th>Current CTC</th><th>Match</th><th>Rating</th><th>Tagged Job</th></tr></thead><tbody id="shTable"></tbody></table></div>
+    <div id="shStatus" class="small"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-sm btn-light" data-bs-dismiss="modal">Close</button>
+    <button class="btn btn-sm btn-primary" id="shSend" onclick="sendScreening(this)"><i class="bi bi-send-fill"></i> Queue &amp; send</button></div>
+</div></div></div>
+
+<!-- KIT (per job) -->
+<div class="modal fade" id="kitModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="kitMTitle">Interview kit</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><div id="kitMStatus" class="small mb-2"></div><div id="kitMOut"></div></div>
+</div></div></div>
+
+<!-- COMPANIES -->
+<div class="modal fade" id="compModal" tabindex="-1"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Company master</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="compRow">
+    <div class="row g-2">
+      <div class="col-md-6"><label class="form-label small fw-semibold">Company name</label><input class="form-control form-control-sm" id="Company Name"></div>
+      <div class="col-md-6"><label class="form-label small fw-semibold">Map / link</label><input class="form-control form-control-sm" id="Comp Map"></div>
+      <div class="col-12"><label class="form-label small fw-semibold">Address</label><input class="form-control form-control-sm" id="Comp Address"></div>
+    </div>
+    <div class="text-end mt-2"><button class="btn btn-sm btn-primary" id="compSubmit" onclick="saveCompany('create',this)">Add company</button>
+      <button class="btn btn-sm btn-warning text-white" id="compUpdate" style="display:none" onclick="saveCompany('update',this)">Update</button></div>
+    <hr><table class="table table-sm"><thead><tr><th>Name</th><th>Address</th><th></th></tr></thead><tbody id="compBody"></tbody></table>
+  </div>
+</div></div></div>
+
+<!-- LOCATIONS -->
+<div class="modal fade" id="locModal" tabindex="-1"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Location master</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <input type="hidden" id="locRow">
+    <div class="row g-2">
+      <div class="col-md-6"><label class="form-label small fw-semibold">Location name</label><input class="form-control form-control-sm" id="Location Name"></div>
+      <div class="col-md-6"><label class="form-label small fw-semibold">Map / link</label><input class="form-control form-control-sm" id="Map / Link"></div>
+      <div class="col-12"><label class="form-label small fw-semibold">Address</label><input class="form-control form-control-sm" id="Address"></div>
+    </div>
+    <div class="text-end mt-2"><button class="btn btn-sm btn-primary" id="locSubmit" onclick="saveLocation('create',this)">Add location</button>
+      <button class="btn btn-sm btn-warning text-white" id="locUpdate" style="display:none" onclick="saveLocation('update',this)">Update</button></div>
+    <hr><table class="table table-sm"><thead><tr><th>Name</th><th>Link</th><th></th></tr></thead><tbody id="locBody"></tbody></table>
+  </div>
+</div></div></div>
+
+<!-- BULK -->
+<div class="modal fade modal-xl-form" id="bulkModal" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Bulk upload &amp; auto-match</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div class="upzone text-center mb-3">
+      <input type="file" id="bulkFiles" class="form-control form-control-sm" accept=".pdf,.doc,.docx" multiple>
+      <div class="row g-2 justify-content-center mt-2">
+        <div class="col-md-5"><label class="form-label small fw-semibold mb-1 d-block text-start">Source for this batch</label><select id="bulkSource" class="form-select form-select-sm" onchange="onSourceChange('bulkSource','bulkSourceRefWrap')"></select></div>
+        <div class="col-md-5" id="bulkSourceRefWrap" style="display:none"><label class="form-label small fw-semibold mb-1 d-block text-start">Reference name / detail</label><input id="bulkSourceRef" class="form-control form-control-sm" placeholder="e.g. referred by Asha Rao"></div>
+      </div>
+      <button class="btn btn-sm btn-dark mt-2" onclick="processBulk(this)"><i class="bi bi-magic"></i> Parse &amp; auto-match all</button>
+      <div id="bulkStatus" class="small mt-2"></div>
+    </div>
+    <div id="bulkReview"></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-sm btn-light" data-bs-dismiss="modal">Close</button>
+    <button class="btn btn-sm btn-primary" id="bulkSave" style="display:none" onclick="saveBulk(this)"><i class="bi bi-save"></i> Save all selected</button></div>
+</div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbyolj6zhQxfM7EgS4I5SFQfh-GO8Ofo20ln-c23aek8hpCX9-z561tJXTj62QDg2z-R6w/exec";
+  // Anti-phishing: set this to your hosted feedback.html URL so screening emails link to a static
+  // page (not the script's /exec). Leave blank to fall back to the script's unbranded feedback route.
+  const FEEDBACK_URL = "";
+  const TARGET_TAB="Candidate", JOBS_TAB="Jobs", INTV_TAB="Interviews", LOC_TAB="Locations", SCREEN_TAB="Screening", COMP_TAB="Companies";
+  const REGISTER_URL = "https://hr-pyramid.github.io/register.html";
+  const PROFILE_URL  = "https://hr-pyramid.github.io/profile.html";  // screening score → AI profile + analysis
+  const STAGES=["Applied","Screening","Interviewing","Offered","Joined","Rejected"];
+  const COLORS={Applied:"#0ea5e9",Screening:"#6366f1",Interviewing:"#f59e0b",Offered:"#8b5cf6",Joined:"#16a34a",Rejected:"#ef4444"};
+  const fields=["Candidate Code","Position ID","Role","Candidate Status","Candidate Name","Current Company","Contact No","Mail Id","Designation","Department","Current CTC","Expected CTC","Interview Date","Offered Date","Date of Joining","CTC","variable","Source","Offer Acceptance","Remarks","Resume","AI Score","Score Notes","Tagged Job","Rating10","Stars","Added By","Profile JSON"];
+  const jobFields=["Job ID","Job Title","Department","Hiring Manager","HM Email","HOD","HOD Email","Location","Status","JD","Exp Min","Exp Max","CTC Min","CTC Max"];
+  let allData=[], jobs=[], users=[], interviews=[], locations=[], companies=[], screenings=[], ROLE="Recruiter", ASSIGNED=[], RIGHTS=[], candView="list", jobView="list", selected=new Set(), bulkItems=[];
+  const el=id=>document.getElementById(id);
+  const isAdmin=()=>ROLE.toLowerCase()==="admin", canEdit=()=>ROLE.toLowerCase()!=="viewer";
+  const canJob=()=>isAdmin()||RIGHTS.includes('job'), canLoc=()=>isAdmin()||RIGHTS.includes('location'), canCompany=()=>isAdmin()||RIGHTS.includes('company');
+  const ME=()=>String(localStorage.getItem("portalUser")||"").toLowerCase();
+  function copyRegLink(btn){ const url=REGISTER_URL; const done=()=>{ const o=btn.innerHTML; btn.innerHTML='<i class="bi bi-check2"></i> Copied!'; btn.classList.add('btn-success'); btn.classList.remove('btn-outline-primary'); setTimeout(()=>{btn.innerHTML=o;btn.classList.remove('btn-success');btn.classList.add('btn-outline-primary');},1500); };
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done).catch(()=>prompt("Copy this link:",url)); }
+    else { const t=document.createElement('textarea'); t.value=url; document.body.appendChild(t); t.select(); try{document.execCommand('copy');done();}catch(e){prompt("Copy this link:",url);} t.remove(); } }
+  const showLoading=s=>el('loading').classList.toggle('d-none',!s);
+  const M={}; function modal(id){ if(!M[id])M[id]=new bootstrap.Modal(el(id)); return M[id]; }
+  function busy(btn,on,label){ if(!btn)return; if(on){btn.dataset.h=btn.innerHTML;btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-border-sm"></span> '+(label||'Working…');}else{btn.disabled=false;if(btn.dataset.h)btn.innerHTML=btn.dataset.h;} }
+
+  window.onload=()=>{
+    ROLE=localStorage.getItem("portalRole")||"Recruiter";
+    ASSIGNED=(localStorage.getItem("portalJobs")||"").split(',').map(s=>s.trim()).filter(Boolean);
+    RIGHTS=(localStorage.getItem("portalRights")||"").split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+    const sk=localStorage.getItem('geminiKey'); if(sk&&el('apiKey'))el('apiKey').value=sk;
+    el('whoami').innerText=localStorage.getItem("portalUser")||"user"; el('roleLabel').innerText=ROLE;
+    if(!isAdmin()) document.querySelectorAll('.nav-link.admin').forEach(t=>t.style.display='none');
+    if(!canEdit()) document.querySelectorAll('.perm').forEach(t=>t.style.display='none');
+    if(!canJob()) document.querySelectorAll('.r-job').forEach(t=>t.style.display='none');
+    if(!canLoc()) document.querySelectorAll('.r-loc').forEach(t=>t.style.display='none');
+    if(!canCompany()) document.querySelectorAll('.r-company').forEach(t=>t.style.display='none');
+    el('scopeNote').innerText=isAdmin()?"Full access":(ASSIGNED.length?("Scoped to "+ASSIGNED.length+" job(s)"):"All records");
+    fetchConfig(); setupDrag(); setupDropZone(); renderStarPicker(0); fetchData(); fetchSources();
+    setTimeout(autoMatchUnrated, 9000);
+    if(window.innerWidth<768){ setCandView('grid'); setJobView('grid'); }
+  };
+  function nav(v,elm){ document.querySelectorAll('.view').forEach(x=>x.classList.remove('active')); el('view-'+v).classList.add('active');
+    document.querySelectorAll('.sidebar .nav-link').forEach(t=>t.classList.remove('active')); elm.classList.add('active');
+    document.querySelector('.sidebar').classList.remove('open');
+    if(v==='admin')fetchUsers(); if(v==='intv')fetchInterviews(); if(v==='screen')fetchScreenings(); if(v==='feed')fetchFeedback(); if(v==='log')fetchEmailLog(); }
+
+  // ── key pool + Gemini ──
+  let REMOTE_KEYS=[];
+  function fetchConfig(){ fetch(`${API_URL}?action=getConfig`).then(r=>r.json()).then(res=>{ if(res.status==="success")REMOTE_KEYS=res.geminiKeys&&res.geminiKeys.length?res.geminiKeys:(res.geminiKey?[res.geminiKey]:[]); }).catch(()=>{}); }
+  const GMODEL="gemini-flash-latest", RETRY=2, sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  function keyPool(){ const m=(el('apiKey')?el('apiKey').value:'').trim(), s=(localStorage.getItem('geminiKey')||'').trim(); const p=[m,...REMOTE_KEYS,s].map(k=>(k||'').trim()).filter(Boolean); return p.filter((k,i)=>p.indexOf(k)===i); }
+  let THINK_OFF=true; // gemini-2.5-flash "thinking" adds latency; disable it. Auto-falls back if a model rejects the field.
+  function geminiBody(parts){ const cfg={responseMimeType:"application/json",temperature:0.2,maxOutputTokens:2048}; if(THINK_OFF)cfg.thinkingConfig={thinkingBudget:0}; return JSON.stringify({contents:[{parts}],generationConfig:cfg}); }
+  async function gemini(parts,keyStart){ const keys=keyPool(); if(!keys.length)throw new Error("No Gemini key configured."); keyStart=keyStart||0; let last="no attempt";
+    for(let i=0;i<keys.length;i++){ const k=(keyStart+i)%keys.length;
+      for(let a=0;a<=RETRY;a++){ let res; const body=geminiBody(parts);
+        try{ res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GMODEL}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','X-goog-api-key':keys[k]},body}); }catch(e){ last="key#"+(k+1)+" net"; if(a<RETRY){await sleep(1200*(a+1));continue;} break; }
+        if(res.ok){ const j=await res.json(); return safeJSON(j.candidates[0].content.parts[0].text); }
+        let m="";try{m=(await res.json()).error?.message||"";}catch(e){}
+        if(res.status===400&&THINK_OFF&&/think/i.test(m)){ THINK_OFF=false; continue; } // model lacks thinkingConfig → retry without it
+        last="key#"+(k+1)+" HTTP "+res.status+(m?": "+m.slice(0,90):"");
+        if(res.status===429||res.status>=500){ if(a<RETRY){await sleep(1200*(a+1));continue;} break; } break; } }
+    throw new Error(`All ${keys.length} key(s) failed. Last: ${last}`); }
+
+  // ── data ──
+  let sources=[], sourceRows=[];
+  function fetchSources(){ fetch(`${API_URL}?action=read&sheetName=${encodeURIComponent("Sources")}`).then(r=>r.json()).then(res=>{ if(res.status==="success"){ sourceRows=res.data; sources=res.data.map(x=>S(x["Source"])).filter(Boolean); buildSourceOptions(); renderSourcesAdmin(); } }).catch(()=>{}); }
+  function fetchData(){ showLoading(true);
+    Promise.all([
+      fetch(`${API_URL}?action=read&sheetName=${encodeURIComponent(TARGET_TAB)}`).then(r=>r.json()),
+      fetch(`${API_URL}?action=read&sheetName=${encodeURIComponent(JOBS_TAB)}`).then(r=>r.json()).catch(()=>({status:"e"})),
+      fetch(`${API_URL}?action=read&sheetName=${encodeURIComponent(LOC_TAB)}`).then(r=>r.json()).catch(()=>({status:"e"})),
+      fetch(`${API_URL}?action=read&sheetName=${encodeURIComponent(COMP_TAB)}`).then(r=>r.json()).catch(()=>({status:"e"}))
+    ]).then(([c,j,l,co])=>{ if(c.status==="success")allData=c.data; if(j.status==="success")jobs=j.data; if(l.status==="success")locations=l.data; if(co&&co.status==="success")companies=co.data; renderAll(); showLoading(false); })
+      .catch(e=>{console.error(e);showLoading(false);}); }
+  const sc=r=>parseInt(r["AI Score"])||0;
+  const pos=r=>r["Position ID."]||r["Position ID"]||'';
+  const jobById=id=>jobs.find(j=>S(j["Job ID"])===S(id));
+  const hmOf=r=>{const j=jobById(r["Tagged Job"]); return j?S(j["Hiring Manager"]):'';};
+  const scopedCands=()=>isAdmin()||!ASSIGNED.length?allData:allData.filter(r=>ASSIGNED.includes(S(r["Tagged Job"])));
+  const scopedJobs=()=>isAdmin()||!ASSIGNED.length?jobs:jobs.filter(j=>ASSIGNED.includes(S(j["Job ID"]))||S(j["Created By"]).toLowerCase()===ME());
+  function renderAll(){ markDupes(); renderMetrics(); renderFunnel(); renderSources(); renderRecruiters(); buildPipeFilters(); renderBoard(); buildFilters(); buildJobFilters(); buildJobDropdowns(); renderCands(); renderJobs(); }
+  function markDupes(){ const seen={}; allData.forEach(r=>{ const k=(S(r["Mail Id"])+'|'+S(r["Contact No"])).toLowerCase(); r.__dupe=false; if(k!=='|'){ if(seen[k]){r.__dupe=true;allData[seen[k]].__dupe=true;} else seen[k]=allData.indexOf(r);} }); }
+
+  // ── dashboard ──
+  function renderMetrics(){ const d=scopedCands(); const c=STAGES.reduce((a,s)=>(a[s]=0,a),{}); let acc=0,scSum=0,scN=0;
+    d.forEach(r=>{ if(c[r["Candidate Status"]]!==undefined)c[r["Candidate Status"]]++; if(S(r["Offer Acceptance"])==="Accepted")acc++; if(sc(r)){scSum+=sc(r);scN++;} });
+    const off=c.Offered+c.Joined, accR=off?Math.round(acc/off*100):0, avg=scN?Math.round(scSum/scN):0;
+    const cards=[["Total",d.length,"g-blue","people-fill"],["Applied",c.Applied,"g-cyan","inbox-fill"],["Screening",c.Screening,"g-violet","envelope-paper-fill"],["Interviewing",c.Interviewing,"g-amber","chat-dots-fill"],["Offered",c.Offered,"g-rose","gift-fill"],["Joined",c.Joined,"g-green","check-circle-fill"],["Avg match",avg,"g-slate","graph-up"]];
+    el('metrics').innerHTML=cards.map(([l,v,g,ic])=>`<div class="col-6 col-md-4 col-xl"><div class="stat ${g} p-3"><div class="v">${v}</div><div class="l">${l}</div><i class="bi bi-${ic}"></i></div></div>`).join(''); }
+  function bar(l,v,m,c){ return `<div class="mb-2"><div class="d-flex justify-content-between small"><span>${esc(l)}</span><span class="fw-semibold">${v}</span></div><div class="progress" style="height:9px"><div class="progress-bar" style="width:${Math.max(3,v/m*100)}%;background:${c}"></div></div></div>`; }
+  function renderFunnel(){ const d=scopedCands(); const c=STAGES.reduce((a,s)=>(a[s]=0,a),{}); d.forEach(r=>{if(c[r["Candidate Status"]]!==undefined)c[r["Candidate Status"]]++;}); const m=Math.max(1,...STAGES.map(s=>c[s])); el('funnel').innerHTML=STAGES.map(s=>bar(s,c[s],m,COLORS[s])).join(''); }
+  function renderSources(){ const d=scopedCands(); const mp={}; d.forEach(r=>{const s=r["Source"]||"Unknown";mp[s]=(mp[s]||0)+1;}); const ent=Object.entries(mp).sort((a,b)=>b[1]-a[1]).slice(0,8),m=Math.max(1,...ent.map(e=>e[1])); el('sources').innerHTML=ent.length?ent.map(([s,n])=>bar(s,n,m,"#1763ff")).join(''):'<p class="text-muted small mb-0">No data.</p>'; }
+  function renderRecruiters(){ const d=scopedCands(); const mp={}; d.forEach(r=>{const s=S(r["Added By"])||"Unattributed";mp[s]=(mp[s]||0)+1;}); const ent=Object.entries(mp).sort((a,b)=>b[1]-a[1]).slice(0,10),m=Math.max(1,...ent.map(e=>e[1])); el('recruiters').innerHTML=ent.length?ent.map(([s,n])=>bar(s,n,m,"#16a34a")).join(''):'<p class="text-muted small mb-0">No data.</p>'; }
+
+  // ── pipeline ──
+  function buildPipeFilters(){ const d=scopedCands();
+    const fill=(id,arr,lbl)=>el(id).innerHTML=`<option value="">${lbl}</option>`+[...new Set(arr.filter(Boolean))].map(x=>`<option>${esc(x)}</option>`).join('');
+    fill('pCompany',d.map(r=>r["Current Company"]),'All companies'); fill('pDept',d.map(r=>r["Department"]),'All departments');
+    fill('pHM',scopedJobs().map(j=>j["Hiring Manager"]),'All hiring managers');
+    el('pJob').innerHTML='<option value="">All job posts</option>'+scopedJobs().map(j=>`<option value="${esc(j["Job ID"])}">${esc(j["Job ID"])} · ${esc(j["Job Title"])}</option>`).join(''); }
+  function renderBoard(){ const co=el('pCompany').value,dp=el('pDept').value,hm=el('pHM').value,jb=el('pJob').value;
+    const d=scopedCands().filter(r=>(!co||r["Current Company"]===co)&&(!dp||r["Department"]===dp)&&(!hm||hmOf(r)===hm)&&(!jb||S(r["Tagged Job"])===S(jb)));
+    el('board').innerHTML=STAGES.map(s=>{ const items=d.filter(r=>r["Candidate Status"]===s);
+      return `<div class="col"><div class="kcol" data-stage="${s}" style="border-top-color:${COLORS[s]}"><div class="d-flex justify-content-between mb-2"><span class="fw-bold small text-uppercase">${s}</span><span class="badge rounded-pill bg-light text-dark">${items.length}</span></div>${items.map(kcard).join('')}</div></div>`; }).join('');
+    document.querySelectorAll('.kcard').forEach(c=>c.addEventListener('dragstart',e=>e.dataTransfer.setData('text/plain',c.dataset.row))); }
+  function kcard(r){ const s=sc(r),chip=s?`<span class="badge" style="background:${scoreColor(s)}">${s}</span>`:'';
+    const cv=r["Resume"]?`<a href="${r["Resume"]}" target="_blank" onclick="event.stopPropagation()"><i class="bi bi-file-earmark-text"></i></a>`:'';
+    return `<div class="kcard" draggable="${canEdit()}" data-row="${r.rowNumber}" onclick="openCandidate(${r.rowNumber})"><div class="d-flex justify-content-between"><b class="small">${esc(r["Candidate Name"])||'—'}</b>${chip}</div><div class="text-muted" style="font-size:.78rem">${esc(r["Role"])||''}</div><div class="d-flex justify-content-between mt-1" style="font-size:.72rem"><span class="text-muted">${esc(r["Current Company"])||'—'}</span>${cv}</div></div>`; }
+  function setupDrag(){ document.addEventListener('dragover',e=>{const c=e.target.closest('.kcol');if(!c)return;e.preventDefault();c.classList.add('drop');});
+    document.addEventListener('dragleave',e=>{const c=e.target.closest('.kcol');if(c)c.classList.remove('drop');});
+    document.addEventListener('drop',e=>{const c=e.target.closest('.kcol');if(!c)return;e.preventDefault();c.classList.remove('drop'); if(!canEdit())return; moveStage(parseInt(e.dataTransfer.getData('text/plain')),c.dataset.stage);}); }
+  function moveStage(rn,stage){ const r=allData.find(x=>x.rowNumber===rn); if(!r||r["Candidate Status"]===stage)return; r["Candidate Status"]=stage; renderAll();
+    fetch(`${API_URL}?action=update&sheetName=${encodeURIComponent(TARGET_TAB)}&rowNumber=${rn}&${encodeURIComponent("Candidate Status")}=${encodeURIComponent(stage)}`).then(r=>r.json()).catch(e=>{console.error(e);fetchData();}); }
+
+  // ── candidates list/grid ──
+  function buildFilters(){ const d=scopedCands();
+    el('fStage').innerHTML='<option value="">All stages</option>'+STAGES.map(s=>`<option>${s}</option>`).join('');
+    el('fSource').innerHTML='<option value="">All sources</option>'+[...new Set(d.map(r=>r["Source"]).filter(Boolean))].map(s=>`<option>${esc(s)}</option>`).join('');
+    el('fJob').innerHTML='<option value="">All jobs</option>'+scopedJobs().map(j=>`<option value="${esc(j["Job ID"])}">${esc(j["Job ID"])} · ${esc(j["Job Title"])}</option>`).join(''); }
+  const starsFor=r=>{let n=parseInt(r["Stars"]); if(!n){const s=sc(r);n=s?Math.max(1,Math.round(s/20)):0;} return Math.min(5,n);};
+  const r10For=r=>{let v=parseFloat(r["Rating10"]); if(isNaN(v)){const s=sc(r);v=s?Math.round(s/10*10)/10:0;} return v;};
+  const starHTML=n=>`<span class="stars">${'★'.repeat(n)}<span class="off">${'★'.repeat(5-n)}</span></span>`;
+  const r10Badge=v=>v?`<span class="r10" style="background:${scoreColor(v*10)}">${v}</span>`:'—';
+  function setCandView(v){ candView=v; el('vList').className='btn btn-sm '+(v==='list'?'btn-primary':'btn-outline-primary'); el('vGrid').className='btn btn-sm '+(v==='grid'?'btn-primary':'btn-outline-primary'); el('candList').style.display=v==='list'?'block':'none'; el('candGrid').style.display=v==='grid'?'flex':'none'; renderCands(); }
+  function toggleSelectAll(cb){ getRows().forEach(r=>cb.checked?selected.add(r.rowNumber):selected.delete(r.rowNumber)); renderCands(); }
+  function onSel(rn,cb){ cb.checked?selected.add(rn):selected.delete(rn); }
+  function getRows(){ const q=(el('search').value||'').toLowerCase(),fst=el('fStage').value,fsr=el('fSource').value,fjb=el('fJob').value,sort=el('sort').value;
+    let rows=scopedCands().filter(r=>{ const hay=[r["Candidate Name"],r["Role"],r["Current Company"],r["Mail Id"],r["Designation"],r["Candidate Code"]].map(S).join(' ').toLowerCase(); return (!q||hay.includes(q))&&(!fst||r["Candidate Status"]===fst)&&(!fsr||r["Source"]===fsr)&&(!fjb||S(r["Tagged Job"])===S(fjb)); });
+    if(sort==="score")rows.sort((a,b)=>sc(b)-sc(a)); else if(sort==="stars")rows.sort((a,b)=>starsFor(b)-starsFor(a)); else if(sort==="name")rows.sort((a,b)=>S(a["Candidate Name"]).localeCompare(S(b["Candidate Name"]))); return rows; }
+  function renderCands(){ candView==='grid'?renderGrid():renderList(); }
+  function renderList(){ const rows=getRows();
+    el('tableBody').innerHTML=rows.map(r=>{ const s=sc(r);
+      const tag=`<span class="badge" style="background:${COLORS[r["Candidate Status"]]||'#94a3b8'}">${esc(r["Candidate Status"])||''}</span>`;
+      const sChip=s?`<span class="badge" style="background:${scoreColor(s)}">${s}</span>`:'—'; const cv=r["Resume"]?`<a href="${r["Resume"]}" target="_blank">View</a>`:'—'; const job=r["Tagged Job"]?`<span class="tagchip">${esc(r["Tagged Job"])}</span>`:'—';
+      const act=canEdit()?`<button class="btn btn-sm btn-outline-warning py-0" onclick="openCandidate(${r.rowNumber})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger py-0" onclick="deleteRecord(${r.rowNumber})"><i class="bi bi-trash"></i></button>`:'<span class="text-muted small">view</span>';
+      return `<tr class="${r.__dupe?'dupe-row':''}"><td><input type="checkbox" class="form-check-input" ${selected.has(r.rowNumber)?'checked':''} onclick="onSel(${r.rowNumber},this)"></td>
+        <td><span class="text-muted small">${esc(r["Candidate Code"])||'—'}</span></td><td class="fw-semibold">${esc(r["Candidate Name"])||''}${r.__dupe?' <span class="badge bg-warning text-dark">dup</span>':''}</td>
+        <td>${sChip}</td><td>${starHTML(starsFor(r))} ${r10Badge(r10For(r))}</td><td>${esc(r["Role"])||''}</td><td>${esc(r["Current Company"])||'—'}</td><td>${tag}</td><td>${job}</td>
+        <td><span class="badge bg-light text-dark">${esc(r["Added By"])||'—'}</span></td><td>${cv}</td>
+        <td><button class="btn btn-sm btn-outline-primary py-0" onclick="openProfile(${r.rowNumber})"><i class="bi bi-eye"></i></button></td><td>${act}</td></tr>`;
+    }).join('')||'<tr><td colspan="13" class="text-muted text-center">No candidates.</td></tr>'; }
+  function renderGrid(){ const rows=getRows();
+    el('candGrid').innerHTML=rows.map(r=>{ const ini=(S(r["Candidate Name"]).split(' ').map(x=>x[0]).join('').substring(0,2)||'CV').toUpperCase(); const s=sc(r);
+      const cv=r["Resume"]?`<a class="btn btn-sm btn-outline-primary" href="${r["Resume"]}" target="_blank">CV</a>`:''; const ed=canEdit()?`<button class="btn btn-sm btn-outline-warning" onclick="openCandidate(${r.rowNumber})">Edit</button>`:'';
+      return `<div class="col-12 col-md-6 col-xl-4"><div class="card ccard p-3 h-100 ${r.__dupe?'dupe-row':''}">
+        <div class="d-flex gap-2 align-items-center mb-2"><div class="ava">${esc(ini)}</div><div class="flex-grow-1"><div class="fw-bold">${esc(r["Candidate Name"])||'—'}</div><div class="text-muted small">${esc(r["Role"])||''}</div></div>
+          <input type="checkbox" class="form-check-input" ${selected.has(r.rowNumber)?'checked':''} onclick="onSel(${r.rowNumber},this)"></div>
+        <div class="small text-secondary mb-1"><i class="bi bi-building"></i> ${esc(r["Current Company"])||'—'} <span class="text-muted">· ${esc(r["Candidate Code"])||''}</span></div>
+        <div class="d-flex justify-content-between align-items-center mb-1">${starHTML(starsFor(r))}<span>${r10Badge(r10For(r))} ${s?`<span class="badge" style="background:${scoreColor(s)}">${s}</span>`:''}</span></div>
+        <div class="d-flex justify-content-between align-items-center"><span class="badge" style="background:${COLORS[r["Candidate Status"]]||'#94a3b8'}">${esc(r["Candidate Status"])||''}</span>${r["Tagged Job"]?`<span class="tagchip">${esc(r["Tagged Job"])}</span>`:''}</div>
+        <div class="d-flex gap-1 mt-2">${cv}<button class="btn btn-sm btn-outline-primary" onclick="openProfile(${r.rowNumber})">Profile</button>${ed}</div></div></div>`;
+    }).join('')||'<p class="text-muted">No candidates match.</p>'; }
+
+  // ── candidate modal CRUD ──
+  function genCode(){ return "CND-"+Date.now().toString(36).toUpperCase()+"-"+Math.random().toString(36).slice(2,5).toUpperCase(); }
+  function openCandidate(rn){ resetForm(); buildJobDropdowns();
+    if(rn){ const r=allData.find(x=>x.rowNumber===rn); if(!r)return; el('candTitle').innerText="Edit candidate";
+      el('rowNumber').value=rn; el('Resume').value=r["Resume"]||''; el('Profile JSON').value=r["Profile JSON"]||''; el('Tagged Job').value=r["Tagged Job"]||''; el('Added By').value=r["Added By"]||'';
+      fields.forEach(f=>{const e2=el(f);if(e2&&e2.type!=='hidden')e2.value=(r[f]!==undefined?r[f]:(f==="Position ID"?pos(r):''))||'';});
+      setSourceField(r["Source"]);
+      if(el('jobSelect'))el('jobSelect').value=S(r["Tagged Job"]); renderStarPicker(parseInt(r["Stars"])||0);
+      el('submitBtn').style.display='none'; el('updateBtn').style.display='inline-block';
+    } else { el('candTitle').innerText="Add candidate"; el('submitBtn').style.display='inline-block'; el('updateBtn').style.display='none'; }
+    modal('candidateModal').show(); }
+  function saveRecord(action,btn){ if(!canEdit())return alert("Read-only."); busy(btn,true,'Saving…');
+    if(!el('Candidate Code').value)el('Candidate Code').value=genCode(); if(!el('Added By').value)el('Added By').value=localStorage.getItem("portalUser")||ROLE;
+    const data={action,sheetName:TARGET_TAB}; if(action==='update')data.rowNumber=el('rowNumber').value;
+    fields.forEach(f=>{const e2=el(f);if(e2&&f!=='Source')data[f]=e2.value;});
+    data["Source"]=sourceComposite('Source','SourceRef');
+    postJSON(data).then(res=>{ modal('candidateModal').hide(); fetchData(); }).catch(e=>{console.error(e);alert("Save failed — please retry.");}).finally(()=>busy(btn,false)); }
+  function deleteRecord(rn){ if(!canEdit())return; if(!confirm("Delete record?"))return; showLoading(true);
+    fetch(`${API_URL}?action=delete&sheetName=${encodeURIComponent(TARGET_TAB)}&rowNumber=${rn}`).then(r=>r.json()).then(res=>{fetchData();}).catch(e=>{console.error(e);showLoading(false);}); }
+  function resetForm(){ ['rowNumber','Resume','Profile JSON','Tagged Job'].forEach(i=>el(i).value=''); fields.forEach(f=>{const e2=el(f);if(e2&&e2.type!=='hidden')e2.value='';}); setSourceField('');
+    el('Candidate Code').value=genCode(); el('Added By').value=localStorage.getItem("portalUser")||ROLE;
+    el('parseStatus').innerText='';el('scoreStatus').innerText='';el('resumeFile').value='';el('jd').value=''; el('scorebox').style.display='none';el('dupeWarn').style.display='none'; if(el('jobSelect'))el('jobSelect').value=''; renderStarPicker(0); }
+  function checkDupe(){ const em=(el('Mail Id').value||'').toLowerCase().trim(),ph=(el('Contact No').value||'').trim(),cur=el('rowNumber').value;
+    const hit=allData.find(r=>String(r.rowNumber)!==cur&&((em&&S(r["Mail Id"]).toLowerCase().trim()===em)||(ph&&S(r["Contact No"]).trim()===ph)));
+    const w=el('dupeWarn'); if(hit){w.style.display='block';w.innerHTML=`<i class="bi bi-exclamation-triangle"></i> Possible duplicate: <b>${esc(hit["Candidate Name"]||'existing')}</b> already has this email/phone.`;} else w.style.display='none'; }
+  function syncRatings(){ const s=parseInt(el('AI Score').value)||0; if(s){setVal("Rating10",Math.round(s/10*10)/10); renderStarPicker(Math.min(5,Math.max(1,Math.round(s/20))));} }
+  function renderStarPicker(n){ el('Stars').value=n||''; const e2=el('starPick'); if(!e2)return; e2.innerHTML=[1,2,3,4,5].map(i=>`<span class="${i<=n?'on':''}" onclick="setStars(${i})">★</span>`).join(''); }
+  function setStars(n){ renderStarPicker(n); setVal("Rating10",n*2); }
+  function onJobPicked(){ const id=el('jobSelect').value,j=jobById(id); el('Tagged Job').value=id||''; if(j){if(j["JD"])el('jd').value=j["JD"];setVal("Role",j["Job Title"]);setVal("Department",j["Department"]);setVal("Position ID",j["Job ID"]);} }
+  function buildJobDropdowns(){ const opts='<option value="">— none —</option>'+approvedOpenJobs().map(j=>`<option value="${esc(j["Job ID"])}">${esc(j["Job ID"])} · ${esc(j["Job Title"])}</option>`).join(''); if(el('jobSelect')){const v=el('jobSelect').value;el('jobSelect').innerHTML=opts;el('jobSelect').value=v;} if(el('uJobs'))el('uJobs').innerHTML=jobs.map(j=>`<option value="${esc(j["Job ID"])}">${esc(j["Job ID"])} · ${esc(j["Job Title"])}</option>`).join(''); }
+
+  // ── source dropdown (admin-managed) ──
+  const SOURCE_FALLBACK=["Naukri.com","LinkedIn","Indeed","Referral","Reference","Walk-in","Company Website","Consultancy","Other"];
+  const srcList=()=>sources.length?sources:SOURCE_FALLBACK;
+  function fillSourceSelect(sel){ if(!sel)return; const cur=sel.value; sel.innerHTML='<option value="">— select —</option>'+srcList().map(s=>`<option>${esc(s)}</option>`).join(''); if(cur&&srcList().indexOf(cur)<0&&!/^Reference\b/i.test(cur)){const o=document.createElement('option');o.textContent=cur;sel.appendChild(o);} sel.value=cur; }
+  function buildSourceOptions(){ fillSourceSelect(el('Source')); fillSourceSelect(el('bulkSource')); }
+  function onSourceChange(selId,wrapId){ const w=el(wrapId); if(w)w.style.display=(el(selId)&&el(selId).value==='Reference')?'block':'none'; }
+  function setSourceField(val){ const sel=el('Source'); if(!sel)return; val=S(val); fillSourceSelect(sel);
+    if(/^Reference\b/i.test(val)){ sel.value='Reference'; if(el('SourceRef'))el('SourceRef').value=val.replace(/^Reference\s*[-:]?\s*/i,''); }
+    else { if(val&&srcList().indexOf(val)<0){const o=document.createElement('option');o.textContent=val;sel.appendChild(o);} sel.value=val; if(el('SourceRef'))el('SourceRef').value=''; }
+    onSourceChange('Source','sourceRefWrap'); }
+  function sourceComposite(selId,refId){ const v=el(selId)?el(selId).value:''; if(v==='Reference'){ const rf=(el(refId)&&el(refId).value||'').trim(); return rf?('Reference - '+rf):'Reference'; } return v; }
+  function renderSourcesAdmin(){ const box=el('sourcesAdmin'); if(!box)return; box.innerHTML=sourceRows.length?sourceRows.map(s=>`<span class="badge bg-light text-dark border me-1 mb-1" style="font-size:.82rem;padding:.4rem .6rem">${esc(S(s["Source"]))} <a href="#" onclick="delSource(${s.rowNumber});return false;" title="Remove" style="text-decoration:none;color:#e11d48;font-weight:700">&times;</a></span>`).join(''):'<span class="text-muted small">No source options yet.</span>'; }
+  function addSource(){ const i=el('newSource'); if(!i)return; const v=(i.value||'').trim(); if(!v)return; if(srcList().some(x=>x.toLowerCase()===v.toLowerCase())){i.value='';return;} fetch(`${API_URL}?action=create&sheetName=${encodeURIComponent("Sources")}&Source=${encodeURIComponent(v)}`).then(r=>r.json()).then(()=>{i.value='';fetchSources();}).catch(e=>console.error(e)); }
+  function delSource(rn){ if(!isAdmin())return; if(!confirm("Remove this source option?"))return; fetch(`${API_URL}?action=delete&sheetName=${encodeURIComponent("Sources")}&rowNumber=${rn}`).then(r=>r.json()).then(()=>fetchSources()).catch(e=>console.error(e)); }
+
+  // ── resume parse / score ──
+  if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+  let extractCache={name:null,text:null};
+  function onFilePicked(auto){const f=el('resumeFile').files[0];extractCache={name:null,text:null};el('parseStatus').innerHTML=f?`<span class="text-primary fw-semibold">${f.name} ready</span>`:'';if(auto&&f)parseSelectedResume();}
+  function setupDropZone(){ const z=el('dropZone'); if(!z)return;
+    ['dragenter','dragover'].forEach(ev=>z.addEventListener(ev,e=>{e.preventDefault();z.style.background='#e7efff';}));
+    ['dragleave','drop'].forEach(ev=>z.addEventListener(ev,e=>{e.preventDefault();z.style.background='';}));
+    z.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(!f)return;const dt=new DataTransfer();dt.items.add(f);el('resumeFile').files=dt.files;onFilePicked(true);}); }
+  function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=()=>rej(new Error("read failed"));r.readAsDataURL(file);});}
+  function postJSON(p){ return fetch(API_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)})
+    .then(async r=>{ const t=await r.text(); try{ return JSON.parse(t); }catch(e){ return {status:"error",message:"Unexpected server response ("+r.status+"). The web app may need redeploying."}; } })
+    .catch(e=>({status:"error",message:"Network error — "+((e&&e.message)||e)+". Check your connection / the web-app URL."})); }
+  // Upload a file to Drive with a couple of retries; always resolves to {status, link|message}.
+  async function uploadWithRetry(b64,f){ let last="upload failed"; for(let a=0;a<3;a++){ const up=await postJSON({action:"uploadResume",fileData:b64,mimeType:f.type||"application/pdf",fileName:f.name}); if(up&&up.status==="success"&&up.link)return up; last=(up&&up.message)||last; await sleep(700*(a+1)); } return {status:"error",message:last}; }
+  async function extractText(file){ const nm=file.name.toLowerCase(); if(extractCache.name===file.name&&extractCache.text)return extractCache.text; const buf=await file.arrayBuffer();let t="";
+    if(nm.endsWith('.pdf')){const pdf=await pdfjsLib.getDocument({data:buf}).promise;const max=Math.min(pdf.numPages,12);for(let i=1;i<=max;i++){const p=await pdf.getPage(i);const c=await p.getTextContent();t+=c.items.map(it=>it.str).join(" ")+"\n";}}
+    else if(nm.endsWith('.docx')){ t=(await mammoth.extractRawText({arrayBuffer:buf})).value; }
+    else if(nm.endsWith('.doc')){ throw new Error("Legacy .doc files can't be read in the browser. Please save the resume as PDF or .docx and re-upload."); }
+    else return null;
+    if(!t.trim())return null; extractCache={name:file.name,text:t}; return t; }
+  const P_PARSE='Parse the resume and return ONLY JSON (empty if absent, no markdown): {"Candidate Name":"","Mail Id":"","Contact No":"","Designation":"","Department":"","Role":"","Source":"","Current CTC":"","Expected CTC":"","Total Experience":"","Skills":"","Summary":"","current_company":"","linkedin_url":"","experience":[{"company":"","role":"","start_year":"","end_year":"","duration":"","description":""}],"education":[{"institution":"","degree":"","year":""}]}. "Role"=most recent title. "current_company"=present employer. "Current CTC"/"Expected CTC" as numbers in LPA if stated (else blank). "Total Experience" in years (number). Keep Summary under 40 words.';
+  const P_SCORE_ADD=' Also append: "score"(0-100 vs JD),"verdict"(short),"strengths"(array),"gaps"(array).';
+  const P_SCORE='Score the resume vs the JOB DESCRIPTION. Return ONLY JSON: {"score":0,"verdict":"","strengths":["",""],"gaps":["",""]}.';
+  const P_KIT='Build a first-round screening kit. Return ONLY JSON: {"questions":[{"q":"","focus":""}],"scorecard":[{"criterion":"","weight":""}]}. 6-8 questions, 4-6 weighted criteria.';
+  function buildParts(p,text,f,data){ return text?[{text:p+"\n\nRESUME TEXT:\n"+String(text).slice(0,15000)}]:[{inline_data:{mime_type:f.type||"application/pdf",data}},{text:p}]; }
+  function applyParsed(p){ setVal("Candidate Name",titleCaseName(p["Candidate Name"]));setVal("Mail Id",p["Mail Id"]);setVal("Contact No",cleanPhone(p["Contact No"]));setVal("Designation",p["Designation"]);setVal("Department",p["Department"]);setVal("Role",p["Role"]); if(p["Current CTC"])setVal("Current CTC",p["Current CTC"]); if(p["Expected CTC"])setVal("Expected CTC",p["Expected CTC"]); if(p["Source"])setSourceField(p["Source"]);
+    const co=p["current_company"]||(p.experience&&p.experience[0]&&p.experience[0].company); if(co)setVal("Current Company",co); const note=[p["Summary"],p["Skills"]?("Skills: "+p["Skills"]):""].filter(Boolean).join(" — "); if(note)setVal("Remarks",note); el('Profile JSON').value=JSON.stringify(p).slice(0,49000); checkDupe(); }
+  async function parseSelectedResume(btn){ const f=el('resumeFile').files[0],st=el('parseStatus'); if(!f){st.className="small text-danger";st.innerText="Pick a file first.";return;} busy(btn,true,'Parsing…');
+    let resumeLink='',uploadErr='',parseErr='';
+    // 1) Drive upload runs independently so a parse error (or missing AI key) never blocks saving the CV.
+    const uploadJob=(async()=>{ try{ const b64=await toBase64(f); if(!b64)throw new Error("file is empty or unreadable — if it's stored in iCloud/Drive, download it to this device first"); const up=await uploadWithRetry(b64,f); if(up.status==="success"&&up.link)resumeLink=up.link; else uploadErr=up.message||"upload failed"; }catch(e){ uploadErr=e.message; } })();
+    // 2) AI parse (best-effort)
+    try{ st.className="small text-primary";st.innerText="Reading…"; const text=await extractText(f); const data=text?null:await toBase64(f); const jd=(el('jd').value||'').trim(); st.innerText=jd?"Parsing & scoring…":"Parsing…";
+      const p=await gemini(buildParts(jd?(P_PARSE+P_SCORE_ADD+"\n\nJOB DESCRIPTION:\n"+jd):P_PARSE,text,f,data)); applyParsed(p); if(jd&&p.score!==undefined)showScore(p);
+    }catch(e){ console.error(e); parseErr=e.message; }
+    st.innerText="Saving to Drive…"; await uploadJob; if(resumeLink)el('Resume').value=resumeLink;
+    const cv=resumeLink?` <a href="${resumeLink}" target="_blank">CV</a>`:'';
+    if(parseErr&&!resumeLink){ st.className="small text-danger"; st.innerText="Failed: "+parseErr+(uploadErr?(" · CV upload: "+uploadErr):""); }
+    else if(parseErr){ st.className="small text-warning"; st.innerHTML="CV saved, but parsing failed: "+esc(parseErr)+"."+cv; }
+    else if(uploadErr){ st.className="small text-warning"; st.innerText="Parsed, but CV upload failed: "+uploadErr; }
+    else { st.className="small text-success"; st.innerHTML="Parsed &amp; stored."+cv; }
+    busy(btn,false); }
+  async function scoreSelectedResume(btn){ const f=el('resumeFile').files[0],st=el('scoreStatus'); if(!f){st.className="small text-danger";st.innerText="Pick a file first.";return;} const jd=(el('jd').value||'').trim(); if(!jd){st.className="small text-danger";st.innerText="Paste a JD first.";return;} busy(btn,true,'Scoring…');
+    try{ st.className="small text-primary";st.innerText="Scoring…"; const text=await extractText(f); const data=text?null:await toBase64(f); const d=await gemini(buildParts(P_SCORE+"\n\nJOB DESCRIPTION:\n"+jd,text,f,data)); showScore(d); st.className="small text-success";st.innerText="Scored."; }
+    catch(e){console.error(e);st.className="small text-danger";st.innerText="Failed: "+e.message;} finally{busy(btn,false);} }
+  function showScore(d){ setVal("AI Score",d.score); setVal("Score Notes",(d.verdict||"")+(d.gaps&&d.gaps.length?(" | Gaps: "+d.gaps.join("; ")):"")); syncRatings(); el('scorebox').style.display='block';
+    el('scorebox').innerHTML=`<div class="d-flex gap-3 align-items-center mb-2"><div class="ring" style="background:${scoreColor(d.score)}">${d.score||0}</div><div><b>${esc(d.verdict||'Assessed')}</b> ${starHTML(Math.min(5,Math.max(1,Math.round((d.score||0)/20))))}<div class="text-muted small">AI match vs JD</div></div></div><div class="row small"><div class="col-6"><b>Strengths</b><ul class="mb-0">${(d.strengths||[]).map(x=>`<li>${esc(x)}</li>`).join('')||'<li>—</li>'}</ul></div><div class="col-6"><b>Gaps</b><ul class="mb-0">${(d.gaps||[]).map(x=>`<li>${esc(x)}</li>`).join('')||'<li>—</li>'}</ul></div></div>`; }
+  // Shared job-list + match prompt (so experience + CTC are weighed everywhere).
+  function jobMatchList(open){ return open.map(j=>`- ${j["Job ID"]}: ${j["Job Title"]} | Exp ${S(j["Exp Min"])||'?'}-${S(j["Exp Max"])||'?'} yrs | CTC ${S(j["CTC Min"])||'?'}-${S(j["CTC Max"])||'?'} LPA | ${S(j["JD"]).slice(0,420)}`).join("\n"); }
+  const MATCH_RULES='Match the candidate to the single best job. Return ONLY JSON {"job_id":"","score":0,"verdict":"","remarks":""}. score 0-100 = overall fit and MUST factor: (1) skills/JD fit, (2) whether candidate total experience falls in the job Exp range, (3) whether candidate current/expected CTC fits the job CTC range. Penalise out-of-range experience or CTC. job_id must be exact from the list.';
+  function candMatchBlurb(){ const c=S(el('Current CTC').value),e=S(el('Expected CTC').value); return (c||e)?`\n\nCANDIDATE CTC: current ${c||'?'} LPA, expected ${e||'?'} LPA.`:''; }
+  async function autoTagBestJob(btn){ const st=el('scoreStatus'); const open=approvedOpenJobs(); if(!open.length){st.className="small text-danger";st.innerText="No approved open postings.";return;}
+    const f=el('resumeFile').files[0]; let text=f?await extractText(f):null; if(!text)text=[el('Role').value,el('Designation').value,el('Remarks').value,el('Profile JSON').value].filter(Boolean).join(' '); if(!text.trim()){st.className="small text-danger";st.innerText="Parse a resume first.";return;} busy(btn,true,'Matching…');
+    try{ st.className="small text-primary";st.innerText="Matching…"; const list=jobMatchList(open);
+      const d=await gemini([{text:MATCH_RULES+'\n\nJOBS:\n'+list+'\n\nCANDIDATE:\n'+text.slice(0,6000)+candMatchBlurb()}]);
+      const score=parseInt(d.score)||0; setVal("AI Score",d.score);
+      if(score>=85){ const j=jobById(d.job_id); el('Tagged Job').value=d.job_id||''; if(el('jobSelect'))el('jobSelect').value=S(d.job_id); if(j){setVal("Role",j["Job Title"]);setVal("Department",j["Department"]);setVal("Position ID",j["Job ID"]);if(j["JD"])el('jd').value=j["JD"];}
+        setVal("Score Notes",d.verdict?`${d.verdict} — ${d.remarks||''}`:(d.remarks||'')); st.className="small text-success";st.innerText=`Tagged to ${d.job_id||'—'} (${score}% match).`; }
+      else { el('Tagged Job').value=''; if(el('jobSelect'))el('jobSelect').value=''; setVal("Score Notes",`No suitable job found (best ${score}%). ${d.remarks||''}`); st.className="small text-warning";st.innerText=`No suitable job found (best match ${score}%). Please assign a job manually from the dropdown.`; }
+      syncRatings();
+    }catch(e){console.error(e);st.className="small text-danger";st.innerText="Failed: "+e.message;} finally{busy(btn,false);} }
+  function approvedOpenJobs(){ return scopedJobs().filter(j=>(!j["Approval"]||j["Approval"]==="Approved")&&(!j["Status"]||j["Status"]==="Open")); }
+  // 24h catch-up: quietly auto-match candidates that still have no AI rating (e.g. self-registrations
+  // where matching failed). Runs in the browser (the server can't call Gemini), throttled to once/24h.
+  async function autoMatchUnrated(){
+    try{
+      const last=parseInt(localStorage.getItem('lastAutoMatch')||'0'); if(Date.now()-last < 24*3600*1000) return;
+      if(!canEdit()||!allData.length) return; const open=approvedOpenJobs(); if(!open.length||!keyPool().length) return;
+      const todo=scopedCands().filter(r=>!S(r["AI Score"]).trim()).slice(0,30); if(!todo.length){ localStorage.setItem('lastAutoMatch',String(Date.now())); return; }
+      const list=jobMatchList(open);
+      async function work(i,slot){ const r=todo[i];
+        try{ let blob=''; try{ const pj=JSON.parse(r["Profile JSON"]||'{}'); blob=[pj.Summary,pj.Skills,(pj.experience||[]).map(x=>`${x.role} ${x.company} ${x.description}`).join(' ')].filter(Boolean).join(' '); }catch(e){}
+          if(!blob.trim())blob=[r["Role"],r["Designation"],r["Current Company"],r["Remarks"]].filter(Boolean).join(' '); if(!blob.trim())return;
+          const ctc=(S(r["Current CTC"])||S(r["Expected CTC"]))?`\n\nCANDIDATE CTC: current ${S(r["Current CTC"])||'?'} LPA, expected ${S(r["Expected CTC"])||'?'} LPA.`:'';
+          const d=await gemini([{text:MATCH_RULES+'\n\nJOBS:\n'+list+'\n\nCANDIDATE:\n'+blob.slice(0,6000)+ctc}],slot);
+          const sc2=parseInt(d.score)||0; const upd={action:'update',sheetName:TARGET_TAB,rowNumber:r.rowNumber,"AI Score":String(d.score||0)};
+          if(sc2>=85){ upd["Tagged Job"]=d.job_id||''; upd["Score Notes"]=(d.verdict?d.verdict+' — ':'')+(d.remarks||''); upd["Rating10"]=Math.round(sc2/10*10)/10; upd["Stars"]=Math.min(5,Math.max(1,Math.round(sc2/20))); }
+          else { upd["Score Notes"]='No suitable job found (best '+sc2+'%).'; }
+          await postJSON(upd);
+        }catch(e){} }
+      await runPool(todo.length, work, Math.min(todo.length, Math.max(keyPool().length,2), 5));
+      localStorage.setItem('lastAutoMatch',String(Date.now())); fetchData();
+    }catch(e){ console.error('auto-match',e); }
+  }
+
+  // ── jobs ──
+  function buildJobFilters(){ const j=scopedJobs();
+    const fill=(id,arr,lbl)=>el(id).innerHTML=`<option value="">${lbl}</option>`+[...new Set(arr.filter(Boolean))].map(x=>`<option>${esc(x)}</option>`).join('');
+    fill('jfDept',j.map(x=>x["Department"]),'All departments'); fill('jfHM',j.map(x=>x["Hiring Manager"]),'All hiring managers'); fill('jfLoc',j.map(x=>x["Location"]),'All locations'); }
+  function setJobView(v){ jobView=v; el('jvList').className='btn btn-sm '+(v==='list'?'btn-primary':'btn-outline-primary'); el('jvGrid').className='btn btn-sm '+(v==='grid'?'btn-primary':'btn-outline-primary'); el('jobList').style.display=v==='list'?'block':'none'; el('jobGrid').style.display=v==='grid'?'flex':'none'; renderJobs(); }
+  function getJobRows(){ const dp=el('jfDept').value,hm=el('jfHM').value,lo=el('jfLoc').value,st=el('jfStatus').value; return scopedJobs().filter(j=>(!dp||j["Department"]===dp)&&(!hm||j["Hiring Manager"]===hm)&&(!lo||j["Location"]===lo)&&(!st||j["Status"]===st)); }
+  const apprBadge=j=>{ const a=S(j["Approval"]); if(!a||a==="Approved")return '<span class="badge bg-success">Approved</span>'; return '<span class="badge bg-warning text-dark">Pending approval</span>'; };
+  function jobActs(j){ let h=''; const pending=S(j["Approval"])&&S(j["Approval"])!=="Approved";
+    if(isAdmin()&&pending) h+=`<button class="btn btn-sm btn-success py-0" onclick="approveJob(${j.rowNumber})" title="Approve"><i class="bi bi-check2-circle"></i> Approve</button> `;
+    if(canEdit()) h+=`<button class="btn btn-sm btn-outline-warning py-0" onclick="openJob(${j.rowNumber})" title="Edit"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger py-0" onclick="deleteJob(${j.rowNumber})" title="Delete"><i class="bi bi-trash"></i></button> `;
+    h+=`<button class="btn btn-sm btn-outline-primary py-0" onclick="jobKit(${j.rowNumber})" title="Interview kit"><i class="bi bi-clipboard-check"></i></button>`; return h; }
+  function renderJobs(){ const counts={}; allData.forEach(c=>{const t=S(c["Tagged Job"]); if(t)counts[t]=(counts[t]||0)+1;}); const rows=getJobRows();
+    el('jobsBody').innerHTML=rows.length?rows.map(j=>`<tr><td><span class="tagchip">${esc(j["Job ID"])}</span></td><td class="fw-semibold">${esc(j["Job Title"])}${j["Created By"]?'<br><span class="text-muted small">by '+esc(j["Created By"])+'</span>':''}</td><td>${esc(j["Department"])||''}</td><td>${esc(j["Location"])||'—'}</td>
+      <td>${esc(j["Hiring Manager"])||'—'}${j["HM Email"]?'<br><span class="text-muted small">'+esc(j["HM Email"])+'</span>':''}</td><td>${esc(j["HOD"])||'—'}</td>
+      <td><span class="badge bg-${j["Status"]==="Open"?"success":j["Status"]==="Closed"?"secondary":"warning"}">${esc(j["Status"])||''}</span><br>${apprBadge(j)}</td><td>${counts[S(j["Job ID"])]||0}</td><td>${jobActs(j)}</td></tr>`).join(''):'<tr><td colspan="9" class="text-muted text-center">No postings.</td></tr>';
+    el('jobGrid').innerHTML=rows.map(j=>`<div class="col-12 col-md-6 col-xl-4"><div class="card p-3 h-100"><div class="d-flex justify-content-between"><span class="tagchip">${esc(j["Job ID"])}</span><span class="badge bg-${j["Status"]==="Open"?"success":j["Status"]==="Closed"?"secondary":"warning"}">${esc(j["Status"])||''}</span></div>
+      <div class="fw-bold mt-2">${esc(j["Job Title"])}</div><div class="text-muted small">${esc(j["Department"])||''} · ${esc(j["Location"])||'—'}</div>
+      <div class="mt-1">${apprBadge(j)}</div>
+      <div class="small mt-2"><i class="bi bi-person-badge"></i> HM: ${esc(j["Hiring Manager"])||'—'}<br><i class="bi bi-people"></i> ${counts[S(j["Job ID"])]||0} applicants${j["Created By"]?' · by '+esc(j["Created By"]):''}</div>
+      <div class="d-flex gap-1 mt-2 flex-wrap">${jobActs(j)}</div></div></div>`).join('')||'<p class="text-muted">No postings.</p>'; }
+  function approveJob(rn){ if(!isAdmin())return; if(!confirm("Approve this job post? It will be enabled and auto-assigned to its creator."))return; showLoading(true);
+    fetch(`${API_URL}?action=approveJob&rowNumber=${rn}`).then(r=>r.json()).then(res=>{alert(res.message||"Approved");fetchData();}).catch(e=>{console.error(e);showLoading(false);}); }
+  const jobEl=h=>el(h==="Department"?"Job Department":h);
+  function openJob(rn){ resetJobForm(); buildLocOptions();
+    if(rn){ const j=jobs.find(x=>x.rowNumber===rn); if(!j)return; el('jobTitle').innerText="Edit job post"; el('jobRow').value=rn; jobFields.forEach(h=>{const e2=jobEl(h);if(e2)e2.value=j[h]||'';}); onJobLoc(); el('jobSubmit').style.display='none'; el('jobUpdate').style.display='inline-block'; }
+    else { el('jobTitle').innerText="Create job post"; el('jobSubmit').style.display='inline-block'; el('jobUpdate').style.display='none'; } modal('jobModal').show(); }
+  function saveJob(action,btn){ if(!canJob())return alert("You don't have rights to create job posts."); if(!el('Job ID').value||!el('Job Title').value)return alert("Job ID and Title required."); busy(btn,true,'Saving…');
+    const data={action,sheetName:JOBS_TAB}; if(action==='update')data.rowNumber=el('jobRow').value;
+    jobFields.forEach(h=>{const e2=jobEl(h);if(e2)data[h]=e2.value;});
+    if(action==='create'){ data["Posted Date"]=new Date().toISOString().slice(0,10); data["Created By"]=localStorage.getItem("portalUser")||ROLE; data["Approval"]=isAdmin()?"Approved":"Pending"; }
+    postJSON(data).then(res=>{ modal('jobModal').hide(); fetchData(); if(action==='create'&&!isAdmin())alert("Job post submitted for admin approval. It will be enabled and assigned to you once approved."); }).catch(e=>{console.error(e);alert("Save failed — please retry.");}).finally(()=>busy(btn,false)); }
+  function deleteJob(rn){ if(!canEdit())return; if(!confirm("Delete posting?"))return; showLoading(true); fetch(`${API_URL}?action=delete&sheetName=${encodeURIComponent(JOBS_TAB)}&rowNumber=${rn}`).then(r=>r.json()).then(res=>{fetchData();}).catch(e=>{console.error(e);showLoading(false);}); }
+  function resetJobForm(){ el('jobRow').value=''; jobFields.forEach(h=>{const e2=jobEl(h);if(e2)e2.value='';}); el('Status').value='Open'; el('jobLocLink').value=''; el('jdStatus').innerText=''; }
+  function buildLocOptions(){ el('Location').innerHTML='<option value="">— select —</option>'+locations.map(l=>`<option value="${esc(l["Location Name"])}">${esc(l["Location Name"])}</option>`).join(''); }
+  function onJobLoc(){ const l=locations.find(x=>S(x["Location Name"])===S(el('Location').value)); el('jobLocLink').value=l?(l["Map / Link"]||l["Address"]||''):''; }
+  async function generateJD(btn){ const st=el('jdStatus'); const t=el('Job Title').value,dp=el('Job Department').value,lo=el('Location').value,ky=el('jdKeys').value; if(!t&&!ky){st.className="small text-danger";st.innerText="Enter a title or key inputs.";return;} busy(btn,true,'Generating…');
+    try{ st.className="small text-primary";st.innerText="Generating…"; const d=await gemini([{text:'Write a professional structured JD. Return ONLY JSON {"jd":"..."} with sections (About the Role, Responsibilities, Required Skills, Preferred, What We Offer). '+`Title:${t}. Department:${dp}. Location:${lo}. Key inputs:${ky}.`}]); el('JD').value=d.jd||''; st.className="small text-success";st.innerText="Generated — review."; }
+    catch(e){console.error(e);st.className="small text-danger";st.innerText="Failed: "+e.message;} finally{busy(btn,false);} }
+  function jobKit(rn){ const j=jobs.find(x=>x.rowNumber===rn); if(!j)return; if(!confirm(`Generate an AI interview kit for "${j["Job Title"]}"?`))return;
+    el('kitMTitle').innerText="Interview kit · "+(j["Job Title"]||''); el('kitMOut').innerHTML=''; el('kitMStatus').className="small text-primary"; el('kitMStatus').innerText="Building…"; modal('kitModal').show();
+    gemini([{text:P_KIT+"\n\nROLE: "+(j["Job Title"]||"")+"\n\nJOB DESCRIPTION:\n"+(j["JD"]||"")}]).then(d=>{ el('kitMOut').innerHTML=kitHTML(d); el('kitMStatus').innerText=""; }).catch(e=>{el('kitMStatus').className="small text-danger";el('kitMStatus').innerText="Failed: "+e.message;}); }
+
+  // ── locations master ──
+  function openLocations(){ buildLocBody(); resetLocForm(); modal('locModal').show(); }
+  function buildLocBody(){ el('locBody').innerHTML=locations.length?locations.map(l=>`<tr><td>${esc(l["Location Name"])}</td><td class="small text-truncate" style="max-width:160px">${esc(l["Map / Link"])||''}</td><td><button class="btn btn-sm btn-outline-warning py-0" onclick="editLoc(${l.rowNumber})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger py-0" onclick="deleteLoc(${l.rowNumber})"><i class="bi bi-trash"></i></button></td></tr>`).join(''):'<tr><td colspan="3" class="text-muted">None yet.</td></tr>'; }
+  function saveLocation(action,btn){ if(!el('Location Name').value)return alert("Name required."); busy(btn,true);
+    let url=`${API_URL}?action=${action}&sheetName=${encodeURIComponent(LOC_TAB)}`; if(action==='update')url+=`&rowNumber=${el('locRow').value}`; if(action==='create')url+=`&Location ID=${encodeURIComponent("LOC-"+Date.now().toString(36))}`;
+    ["Location Name","Address","Map / Link"].forEach(h=>url+=`&${encodeURIComponent(h)}=${encodeURIComponent(el(h).value)}`);
+    fetch(url).then(r=>r.json()).then(res=>{ fetch(`${API_URL}?action=read&sheetName=${encodeURIComponent(LOC_TAB)}`).then(r=>r.json()).then(rr=>{if(rr.status==="success")locations=rr.data; buildLocBody(); buildLocOptions(); resetLocForm();}); }).catch(e=>console.error(e)).finally(()=>busy(btn,false)); }
+  function editLoc(rn){ const l=locations.find(x=>x.rowNumber===rn);if(!l)return; el('locRow').value=rn; ["Location Name","Address","Map / Link"].forEach(h=>el(h).value=l[h]||''); el('locSubmit').style.display='none'; el('locUpdate').style.display='inline-block'; }
+  function deleteLoc(rn){ if(!confirm("Delete location?"))return; fetch(`${API_URL}?action=delete&sheetName=${encodeURIComponent(LOC_TAB)}&rowNumber=${rn}`).then(r=>r.json()).then(()=>{ fetch(`${API_URL}?action=read&sheetName=${encodeURIComponent(LOC_TAB)}`).then(r=>r.json()).then(rr=>{if(rr.status==="success")locations=rr.data;buildLocBody();buildLocOptions();}); }); }
+  function resetLocForm(){ el('locRow').value=''; ["Location Name","Address","Map / Link"].forEach(h=>el(h).value=''); el('locSubmit').style.display='inline-block'; el('locUpdate').style.display='none'; }
+
+  // ── companies master (mirrors locations; rights = 'company') ──
+  function buildCompanyOptions(sel){ if(!sel)return; const cur=sel.value; sel.innerHTML='<option value="">— select —</option>'+companies.map(c=>`<option value="${esc(c["Company Name"])}">${esc(c["Company Name"])}</option>`).join(''); sel.value=cur; }
+  function openCompanies(){ if(!canCompany())return; buildCompBody(); resetCompForm(); modal('compModal').show(); }
+  function buildCompBody(){ el('compBody').innerHTML=companies.length?companies.map(c=>`<tr><td>${esc(c["Company Name"])}</td><td class="small text-truncate" style="max-width:160px">${esc(c["Address"])||''}</td><td><button class="btn btn-sm btn-outline-warning py-0" onclick="editCompany(${c.rowNumber})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger py-0" onclick="deleteCompany(${c.rowNumber})"><i class="bi bi-trash"></i></button></td></tr>`).join(''):'<tr><td colspan="3" class="text-muted">None yet.</td></tr>'; }
+  function refreshCompanies(){ return fetch(`${API_URL}?action=read&sheetName=${encodeURIComponent(COMP_TAB)}`).then(r=>r.json()).then(rr=>{if(rr.status==="success")companies=rr.data; buildCompBody(); if(el('ivCompany'))buildCompanyOptions(el('ivCompany'));}); }
+  function saveCompany(action,btn){ if(!canCompany())return; if(!el('Company Name').value)return alert("Name required."); busy(btn,true);
+    const data={action,sheetName:COMP_TAB,"Company Name":el('Company Name').value,"Address":el('Comp Address').value,"Map / Link":el('Comp Map').value};
+    if(action==='update')data.rowNumber=el('compRow').value; if(action==='create')data["Company ID"]="CMP-"+Date.now().toString(36);
+    postJSON(data).then(()=>{ refreshCompanies(); resetCompForm(); }).catch(e=>console.error(e)).finally(()=>busy(btn,false)); }
+  function editCompany(rn){ const c=companies.find(x=>x.rowNumber===rn);if(!c)return; el('compRow').value=rn; el('Company Name').value=c["Company Name"]||''; el('Comp Address').value=c["Address"]||''; el('Comp Map').value=c["Map / Link"]||''; el('compSubmit').style.display='none'; el('compUpdate').style.display='inline-block'; }
+  function deleteCompany(rn){ if(!canCompany())return; if(!confirm("Delete company?"))return; fetch(`${API_URL}?action=delete&sheetName=${encodeURIComponent(COMP_TAB)}&rowNumber=${rn}`).then(r=>r.json()).then(()=>refreshCompanies()); }
+  function resetCompForm(){ el('compRow').value=''; ['Company Name','Comp Address','Comp Map'].forEach(i=>el(i).value=''); el('compSubmit').style.display='inline-block'; el('compUpdate').style.display='none'; }
+
+  // ── interviews ──
+  const IV_NOTES_DEFAULT="Please Note: To ensure a professional and successful session, please note the following guidelines:\n  • Dress Code: Professional business attire is required for this interview.\nWe look forward to meeting you.";
+  let ivPool=null; // when set (from screening), the candidate dropdown is limited to these rows
+  function ivDatePrev(){ const v=el('ivDate').value; el('ivDatePrevLbl').innerText=v?('→ '+fmtDateDMY(v)):''; }
+  function fmtDateDMY(v){ const m=S(v).match(/^(\d{4})-(\d{2})-(\d{2})$/); return m?(m[3]+'/'+m[2]+'/'+m[1]):S(v); }
+  function fmtDate2iso(v){ const d=parseAnyDate(v); return d?(d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())):''; }
+  function openInterview(rn){ ivPool=null; ivOpen(rn); }
+  function ivOpen(rn){ resetIvForm(); buildIvCandidates(); buildCompanyOptions(el('ivCompany')); buildIvLocOptions();
+    if(rn){ const i=interviews.find(x=>x.rowNumber===rn); if(!i)return; el('ivTitle').innerText="Reschedule interview"; el('ivRow').value=rn; el('ivEventId').value=i["Calendar Event ID"]||'';
+      el('ivEmail').value=i["Candidate Email"]||''; el('ivJobId').value=i["Job ID"]||''; el('ivJobTitle').value=i["Job Title"]||(jobById(i["Job ID"])||{})["Job Title"]||S(i["Job ID"]); el('ivResume').value=i["Resume"]||'';
+      el('ivRound').value=i["Round"]||'Primary'; el('ivDate').value=fmtDate2iso(i["Date"]); el('ivTime').value=fmtTime(i["Time"]); el('ivDur').value=i["Duration"]||45; el('ivMode').value=i["Mode"]||'Online';
+      el('ivPanel').value=i["Interviewers"]||''; el('ccMgr').checked=false; el('ccHod').checked=false;
+      if(el('ivCompany'))el('ivCompany').value=i["Company"]||''; el('ivAddr').value=i["Location"]||''; el('ivMapLink').value=i["Location"]?("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(i["Location"])):''; el('ivNotes').value=i["Notes"]||IV_NOTES_DEFAULT; ivDatePrev();
+      el('ivSubmit').style.display='none'; el('ivUpdate').style.display='inline-block';
+    } else { el('ivTitle').innerText="Schedule interview"; el('ivSubmit').style.display='inline-block'; el('ivUpdate').style.display='none'; } modal('interviewModal').show(); }
+  function buildIvLocOptions(){ if(el('ivLocSel'))el('ivLocSel').innerHTML='<option value="">— select —</option>'+locations.map(l=>`<option value="${esc(l["Location Name"])}">${esc(l["Location Name"])}</option>`).join(''); }
+  function buildIvCandidates(){ const d=ivPool||scopedCands(); el('ivCand').innerHTML='<option value="">— select —</option>'+d.map(r=>`<option value="${r.rowNumber}">${esc(r["Candidate Name"]||'?')}</option>`).join(''); }
+  function onIvCandPicked(){ const r=allData.find(x=>String(x.rowNumber)===el('ivCand').value); if(!r)return; el('ivEmail').value=r["Mail Id"]||''; el('ivResume').value=r["Resume"]||'';
+    const j=jobById(r["Tagged Job"]); el('ivJobId').value=r["Tagged Job"]||''; el('ivJobTitle').value=j?(j["Job Title"]||S(r["Tagged Job"])):S(r["Tagged Job"]);
+    if(j){ if(!el('ccMgrEmail').value)el('ccMgrEmail').value=j["HM Email"]||''; if(!el('ccHodEmail').value)el('ccHodEmail').value=j["HOD Email"]||'';
+      if(j["Location"]&&el('ivLocSel')){ el('ivLocSel').value=S(j["Location"]); onIvVenue('location'); } } }
+  function onIvVenue(which){ const name=which==='company'?(el('ivCompany')?el('ivCompany').value:''):(el('ivLocSel')?el('ivLocSel').value:'');
+    const rec=which==='company'?companies.find(c=>S(c["Company Name"])===S(name)):locations.find(l=>S(l["Location Name"])===S(name)); if(!rec)return;
+    if(rec["Address"])el('ivAddr').value=rec["Address"]; el('ivMapLink').value=rec["Address"]?("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(rec["Address"])):(rec["Map / Link"]||''); }
+  function ivGuests(){ const g=[]; if(el('ccMgr').checked&&el('ccMgrEmail').value.trim())g.push(el('ccMgrEmail').value.trim()); if(el('ccHod').checked&&el('ccHodEmail').value.trim())g.push(el('ccHodEmail').value.trim()); S(el('ivPanel').value).split(/[,;\s]+/).filter(Boolean).forEach(x=>g.push(x)); return g.filter((x,i,a)=>a.indexOf(x)===i).join(', '); }
+  function fetchInterviews(){ fetch(`${API_URL}?action=read&sheetName=${encodeURIComponent(INTV_TAB)}`).then(r=>r.json()).then(res=>{if(res.status==="success"){interviews=res.data;renderInterviews();}}).catch(e=>console.error(e)); }
+  function ivScoped(){ return isAdmin()||!ASSIGNED.length?interviews:interviews.filter(i=>ASSIGNED.includes(S(i["Job ID"]))); }
+  function renderInterviews(){ const rows=ivScoped();
+    el('ivBody').innerHTML=rows.length?rows.map(i=>{ const st=S(i["Status"]),sy=S(i["Sync"]);
+      const stB=`<span class="badge bg-${st==="Cancelled"?"secondary":st==="Rescheduled"?"warning":"primary"}">${esc(st)||'Scheduled'}</span>`;
+      const syB=`<span class="badge bg-${sy==="Done"?"success":sy.indexOf("Error")===0?"danger":"warning text-dark"}">${esc(sy)||'Pending'}</span>`;
+      const act=canEdit()?`<button class="btn btn-sm btn-outline-warning py-0" onclick="openInterview(${i.rowNumber})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger py-0" onclick="cancelInterview(${i.rowNumber})"><i class="bi bi-x-circle"></i></button>`:'—';
+      return `<tr><td class="fw-semibold">${esc(i["Candidate Name"])||''}</td><td>${esc(i["Job Title"]||i["Job ID"])||'—'}</td><td>${esc(i["Round"])||''}</td>
+        <td>${esc(fmtDT(i["Date"],i["Time"]))}</td><td>${esc(i["Mode"])||''}</td><td class="small">${esc(i["Interviewers"])||'—'}</td><td>${stB}</td><td>${rsvpCell(i["RSVP"])}</td><td>${syB}</td><td>${act}</td></tr>`;
+    }).join(''):'<tr><td colspan="10" class="text-muted text-center">No interviews.</td></tr>'; }
+  function rsvpCell(t){ t=S(t); if(!t)return '<span class="text-muted small">—</span>'; if(t==="Cancelled")return '<span class="badge bg-secondary">Cancelled</span>'; if(t==="Invited")return '<span class="badge bg-light text-dark">Invited</span>';
+    const seg=t.split('|').map(x=>x.trim()); const cnt=l=>{const s=seg.find(x=>x.indexOf(l)>=0); if(!s)return 0; return (s.split(':')[1]||'').split(',').filter(x=>x.trim()).length;};
+    const y=cnt('Accepted'),n=cnt('Declined'),m=cnt('Maybe'),p=cnt('Pending'); let h='';
+    if(y)h+=`<span class="badge bg-success me-1">✔ ${y}</span>`; if(n)h+=`<span class="badge bg-danger me-1">✘ ${n}</span>`; if(m)h+=`<span class="badge bg-warning text-dark me-1">? ${m}</span>`; if(p)h+=`<span class="badge bg-light text-dark me-1">• ${p}</span>`;
+    return `<span title="${esc(t)}" style="cursor:help">${h||'<span class="text-muted small">—</span>'}</span>`; }
+  function saveInterview(action,btn){ if(!canEdit())return alert("Read-only."); if(!el('ivCand').value&&!el('ivRow').value)return alert("Pick a candidate."); if(!el('ivDate').value||!el('ivTime').value)return alert("Date and time required."); busy(btn,true,'Saving…');
+    const cand=allData.find(x=>String(x.rowNumber)===el('ivCand').value)||{};
+    const data={action,sheetName:INTV_TAB,"Candidate Email":el('ivEmail').value,"Job ID":el('ivJobId').value,"Job Title":el('ivJobTitle').value,"Round":el('ivRound').value,"Interviewers":ivGuests(),"Date":el('ivDate').value,"Time":el('ivTime').value,"Duration":el('ivDur').value,"Mode":el('ivMode').value,"Location":el('ivAddr').value,"Company":el('ivCompany')?el('ivCompany').value:'',"Resume":el('ivResume').value,"Notes":el('ivNotes').value,"Status":el('ivEventId').value?"Rescheduled":"Scheduled","Sync":"Pending"};
+    if(!el('ivRow').value){ data["Candidate Code"]=cand["Candidate Code"]||''; data["Candidate Name"]=cand["Candidate Name"]||''; if(!data["Resume"])data["Resume"]=cand["Resume"]||''; }
+    if(action==='create'){ data["Interview ID"]="IV-"+Date.now().toString(36).toUpperCase(); data["Created By"]=localStorage.getItem("portalUser")||ROLE; } if(action==='update')data.rowNumber=el('ivRow').value;
+    postJSON(data).then(res=>{ if(action==='create'&&cand.rowNumber)bumpStatus([cand.rowNumber],"Interviewing"); modal('interviewModal').hide(); fetchInterviews(); }).catch(e=>{console.error(e);alert("Save failed — please retry.");}).finally(()=>busy(btn,false)); }
+  // Auto-advance candidates in the pipeline as their stage changes (screening / interview).
+  function bumpStatus(rowNumbers,status){ rowNumbers.forEach(rn=>{ const r=allData.find(x=>x.rowNumber===rn); if(r){r["Candidate Status"]=status;} fetch(`${API_URL}?action=update&sheetName=${encodeURIComponent(TARGET_TAB)}&rowNumber=${rn}&${encodeURIComponent("Candidate Status")}=${encodeURIComponent(status)}`).catch(e=>console.error(e)); }); renderAll(); }
+  function cancelInterview(rn){ if(!canEdit())return; if(!confirm("Cancel interview? Calendar event will be removed."))return; showLoading(true); postJSON({action:'update',sheetName:INTV_TAB,rowNumber:rn,"Status":"Cancelled","Sync":"Pending"}).then(()=>{fetchInterviews();}).catch(e=>console.error(e)).finally(()=>showLoading(false)); }
+  function resetIvForm(){ ['ivRow','ivEventId','ivJobId','ivResume','ivEmail','ivJobTitle','ivPanel','ivDate','ivTime','ivAddr','ivMapLink','ivDatePrevLbl','ccMgrEmail','ccHodEmail'].forEach(i=>{if(el(i))el(i).value='';}); el('ivDur').value=45; el('ivMode').value='Online'; el('ivRound').value='Primary'; el('ccMgr').checked=true; el('ccHod').checked=true; el('ivNotes').value=IV_NOTES_DEFAULT; if(el('ivCand'))el('ivCand').value=''; if(el('ivCompany'))el('ivCompany').value=''; if(el('ivLocSel'))el('ivLocSel').value=''; }
+
+  // ── screening ──
+  function fetchScreenings(){ fetch(`${API_URL}?action=read&sheetName=${encodeURIComponent(SCREEN_TAB)}`).then(r=>r.json()).then(res=>{if(res.status==="success"){screenings=res.data;renderScreenings();}}).catch(e=>console.error(e)); }
+  function renderScreenings(){ const rows=isAdmin()||!ASSIGNED.length?screenings:screenings.filter(s=>ASSIGNED.includes(S(s["Job ID"])));
+    el('screenBody').innerHTML=rows.length?rows.slice().reverse().map(s=>{ const st=S(s["Status"]),sy=S(s["Sync"]);
+      const b=`<span class="badge bg-${sy==="Done"?"success":sy.indexOf("Error")===0?"danger":"warning text-dark"}">${st||'Queued'}${sy&&sy!=="Done"?(' · '+sy):''}</span>`;
+      const sch=canEdit()?`<button class="btn btn-sm btn-outline-primary py-0" onclick="scheduleFromScreening(${s.rowNumber})"><i class="bi bi-calendar-plus"></i> Interview</button>`:'—';
+      return `<tr><td>${esc(fmtDateTime12(s["Date"]))||''}</td><td class="small">${esc(s["Candidate Names"])||''}</td><td>${esc(s["Job ID"])||'—'}</td><td>${esc(s["Hiring Manager"])||'—'}</td><td>${esc(s["HOD"])||'—'}</td><td class="small">${esc(s["To"])||''}</td><td>${b}</td><td class="small">${esc(fmtDateTime12(s["Sent Date"]))||'—'}</td><td>${sch}</td></tr>`;
+    }).join(''):'<tr><td colspan="9" class="text-muted text-center">No screenings sent yet.</td></tr>'; }
+  function scheduleFromScreening(rn){ const s=screenings.find(x=>x.rowNumber===rn); if(!s)return;
+    const codes=S(s["Candidate Codes"]).split(',').map(x=>x.trim()).filter(Boolean);
+    const names=S(s["Candidate Names"]).split(',').map(x=>x.trim()).filter(Boolean);
+    let pool=allData.filter(r=>codes.includes(S(r["Candidate Code"]))); if(!pool.length)pool=allData.filter(r=>names.includes(S(r["Candidate Name"])));
+    ivPool=pool.length?pool:null; ivOpen(); // dropdown shows only shared profiles
+    const jid=S(s["Job ID"]).split(',')[0].trim(); const j=jobById(jid);
+    el('ivJobId').value=jid; el('ivJobTitle').value=j?(j["Job Title"]||jid):jid;
+    if(s["HM Email"])el('ccMgrEmail').value=S(s["HM Email"]).split(',')[0].trim(); if(s["HOD Email"])el('ccHodEmail').value=S(s["HOD Email"]).split(',')[0].trim();
+    if(j&&j["Location"]&&el('ivLocSel')){ el('ivLocSel').value=S(j["Location"]); onIvVenue('location'); }
+    if(pool.length===1){ el('ivCand').value=pool[0].rowNumber; onIvCandPicked(); } }
+  function openShare(){ const rows=scopedCands().filter(r=>selected.has(r.rowNumber)); if(!rows.length)return alert("Tick at least one candidate in the Candidates tab.");
+    const jset=[...new Set(rows.map(r=>S(r["Tagged Job"])).filter(Boolean))].map(jobById).filter(Boolean);
+    el('shTo').value=jset.map(j=>j["HM Email"]).filter(Boolean).join(', '); el('shCC').value=jset.map(j=>j["HOD Email"]).filter(Boolean).join(', ');
+    el('shSubject').value="Shortlisted Profiles"+(jset.length?(" || "+jset.map(j=>j["Job Title"]).join(", ")):"");
+    el('shTable').innerHTML=rows.map(r=>`<tr><td>${esc(r["Candidate Name"])||''}</td><td>${esc(r["Role"])||''}</td><td>${r["Current CTC"]?esc(r["Current CTC"]):'—'}</td><td>${sc(r)||'—'}</td><td>${starHTML(starsFor(r))}</td><td>${esc(r["Tagged Job"])||'—'}</td></tr>`).join('');
+    el('shStatus').innerText=''; modal('shareModal').show(); }
+  function emailStars(n){ return '<span style="color:#f59e0b;letter-spacing:1px">'+'★'.repeat(n)+'<span style="color:#cbd5e1">'+'★'.repeat(5-n)+'</span></span>'; }
+  function sendScreening(btn){ const rows=scopedCands().filter(r=>selected.has(r.rowNumber)); if(!rows.length)return; if(!el('shTo').value.trim())return alert("Add at least one 'To' recipient."); busy(btn,true,'Queuing…');
+    const jset=[...new Set(rows.map(r=>S(r["Tagged Job"])).filter(Boolean))].map(jobById).filter(Boolean);
+    const scrId="SCR-"+Date.now().toString(36).toUpperCase();
+    const hmName=jset.map(j=>S(j["Hiring Manager"])).filter(Boolean)[0]||"";
+    const roleLine=jset.length?(" for the <b>"+jset.map(j=>esc(j["Job Title"])).join(", ")+"</b> "+(jset.length>1?"roles":"role")):"";
+    const fbBase=(q)=>FEEDBACK_URL?`${FEEDBACK_URL}?${q}`:`${API_URL}?action=feedbackForm&${q}`;
+    const fbLink=r=>fbBase(`screening=${encodeURIComponent(scrId)}&code=${encodeURIComponent(S(r["Candidate Code"]))}&name=${encodeURIComponent(S(r["Candidate Name"]))}&job=${encodeURIComponent(S(r["Tagged Job"]))}&to=${encodeURIComponent(el('shTo').value.split(',')[0].trim())}`);
+    const td=`padding:9px 8px;border:1px solid #d7deee;font-size:13px`;
+    const body=`<div style="font-family:Arial,Helvetica,sans-serif;color:#1e293b;font-size:14px;max-width:760px">
+      <p>Dear ${hmName?esc(hmName):"Hiring Team"},</p>
+      <p>Please find below the shortlisted candidate${rows.length>1?'s':''}${roleLine} for your review. Kindly use the <b>Share feedback</b> link beside each candidate to record your assessment — your response is sent straight back to the recruiting team, and you'll receive a confirmation by email.</p>
+      <table style="width:100%;border-collapse:collapse;margin:10px 0">
+        <thead><tr style="background:#0f1b33;color:#fff">
+          <th style="${td}">Candidate</th><th style="${td}">Role</th><th style="${td}">Company</th><th style="${td}">Current CTC</th><th style="${td}">AI match</th><th style="${td}">Rating</th><th style="${td}">CV</th><th style="${td}">Feedback</th></tr></thead><tbody>`
+      +rows.map(r=>{ const nm=esc(r["Candidate Name"])||'—'; const sumAttr=(esc(S(r["Score Notes"])||('AI match score '+ (sc(r)||'—'))) ).replace(/"/g,'&quot;');
+        const profileHref=PROFILE_URL?(`${PROFILE_URL}?code=${encodeURIComponent(S(r["Candidate Code"]))}`):(r["Resume"]||'');
+        const nameCell=`<b>${nm}</b>`;
+        const aiCell=sc(r)?(profileHref?`<a href="${profileHref}" title="${sumAttr}" style="color:#1763ff;font-weight:700;text-decoration:underline">${sc(r)}</a>`:`<b title="${sumAttr}">${sc(r)}</b>`):'—';
+        return `<tr>
+        <td style="${td}">${nameCell}</td>
+        <td style="${td}">${esc(r["Role"])||''}</td><td style="${td}">${esc(r["Current Company"])||'—'}</td>
+        <td style="${td}">${r["Current CTC"]?esc(r["Current CTC"]):'—'}</td>
+        <td style="${td}">${aiCell}</td>
+        <td style="${td}">${emailStars(starsFor(r))}</td>
+        <td style="${td}">${r["Resume"]?'<a href="'+r["Resume"]+'">View</a>':'—'}</td>
+        <td style="${td}"><a href="${fbLink(r)}" style="background:#1763ff;color:#fff;text-decoration:none;padding:6px 10px;border-radius:6px;font-size:12px;white-space:nowrap">Share feedback</a></td></tr>`;}).join('')
+      +`</tbody></table>
+      <p>Thank you for your time.</p>
+      <p style="margin-bottom:2px">Regards,<br>${esc(localStorage.getItem("portalUser")||ROLE)}</p>
+      <p style="color:#94a3b8;font-size:12px">Sent via TalentPool ATS</p></div>`;
+    const data={action:'create',sheetName:SCREEN_TAB,"Screening ID":scrId,"Date":nowStr(),
+      "Candidate Codes":rows.map(r=>S(r["Candidate Code"])).join(', '),"Candidate Names":rows.map(r=>S(r["Candidate Name"])).join(', '),
+      "Job ID":jset.map(j=>j["Job ID"]).join(', '),"Hiring Manager":jset.map(j=>j["Hiring Manager"]).filter(Boolean).join(', '),"HM Email":el('shTo').value,
+      "HOD":jset.map(j=>j["HOD"]).filter(Boolean).join(', '),"HOD Email":el('shCC').value,"To":el('shTo').value,"CC":el('shCC').value,
+      "Subject":el('shSubject').value,"Body":body,"Status":"Queued","Sync":"Pending","Sent By":localStorage.getItem("portalUser")||ROLE};
+    postJSON(data).then(res=>{ bumpStatus(rows.map(r=>r.rowNumber),"Screening"); el('shStatus').className="small text-success"; el('shStatus').innerText="Queued — the 5-minute trigger will send it with feedback links and log status."; setTimeout(()=>{modal('shareModal').hide();fetchScreenings();},1300); }).catch(e=>{console.error(e);el('shStatus').className="small text-danger";el('shStatus').innerText="Failed: "+e.message;}).finally(()=>busy(btn,false)); }
+
+  // ── feedback (from emailed forms) ──
+  let feedback=[];
+  function fetchFeedback(){ fetch(`${API_URL}?action=read&sheetName=Feedback`).then(r=>r.json()).then(res=>{if(res.status==="success"){feedback=res.data;renderFeedback();}}).catch(e=>console.error(e)); }
+  function renderFeedback(){ const rows=isAdmin()||!ASSIGNED.length?feedback:feedback.filter(f=>ASSIGNED.includes(S(f["Job ID"])));
+    el('feedBody').innerHTML=rows.length?rows.slice().reverse().map(f=>{ const rt=parseInt(f["Rating"])||0; const dec=S(f["Decision"]);
+      const db=dec?`<span class="badge bg-${/short/i.test(dec)?'success':/reject/i.test(dec)?'danger':'warning text-dark'}">${esc(dec)}</span>`:'—';
+      return `<tr><td class="small">${esc(fmtDateTime(f["Date"]))}</td><td class="fw-semibold">${esc(f["Candidate Name"])||''}<br><span class="text-muted small">${esc(f["Candidate Code"])||''}</span></td><td>${esc(f["Job ID"])||'—'}</td><td class="small">${esc(f["Reviewer Email"])||'—'}</td><td>${rt?starHTML(Math.min(5,rt)):'—'}</td><td>${db}</td><td class="small">${esc(f["Comments"])||''}</td></tr>`;
+    }).join(''):'<tr><td colspan="7" class="text-muted text-center">No feedback received yet.</td></tr>'; }
+
+  // ── email log ──
+  let emailLog=[];
+  function fetchEmailLog(){ fetch(`${API_URL}?action=read&sheetName=${encodeURIComponent("Email Log")}`).then(r=>r.json()).then(res=>{if(res.status==="success"){emailLog=res.data;renderEmailLog();}}).catch(e=>console.error(e)); }
+  function renderEmailLog(){ const rows=emailLog.slice().reverse();
+    el('logBody').innerHTML=rows.length?rows.map(l=>{ const ty=S(l["Type"]);
+      const badge=`<span class="badge bg-${/cancel/i.test(ty)?'secondary':/screen/i.test(ty)?'info':/feedback/i.test(ty)?'success':/update|resched/i.test(ty)?'warning text-dark':'primary'}">${esc(ty)}</span>`;
+      return `<tr><td class="small">${esc(fmtDateTime(l["Timestamp"]))}</td><td>${badge}</td><td class="small">${esc(l["To"])}</td><td class="small">${esc(l["CC"])||'—'}</td><td class="small">${esc(l["Subject"])}</td><td><span class="badge bg-light text-dark">${esc(l["Status"])||'Sent'}</span></td><td class="small text-muted">${esc(l["Related ID"])||''}</td></tr>`;
+    }).join(''):'<tr><td colspan="7" class="text-muted text-center">No emails logged yet.</td></tr>'; }
+
+  // ── bulk upload ──
+  function openBulk(){ bulkItems=[]; el('bulkReview').innerHTML=''; el('bulkStatus').innerText=''; el('bulkFiles').value=''; el('bulkSave').style.display='none'; buildSourceOptions(); if(el('bulkSource'))el('bulkSource').value=''; if(el('bulkSourceRef'))el('bulkSourceRef').value=''; onSourceChange('bulkSource','bulkSourceRefWrap'); modal('bulkModal').show(); }
+  async function processBulk(btn){ const files=[...el('bulkFiles').files]; if(!files.length)return alert("Choose resume files."); busy(btn,true,'Processing…'); bulkItems=new Array(files.length);
+    const open=approvedOpenJobs(); const list=jobMatchList(open);
+    const prompt=open.length?(P_PARSE+' Also append "match_job_id"(best from list, exact id),"score"(0-100 fit factoring skills + experience-range + CTC-range),"remarks". \n\nJOBS:\n'+list):P_PARSE;
+    const conc=Math.min(files.length, Math.max(keyPool().length,2), 8); let done=0;
+    const setp=()=>{ el('bulkStatus').className="small text-primary"; el('bulkStatus').innerText=`Parsing ${done}/${files.length} (×${conc} in parallel)…`; }; setp();
+    async function worker(i,slot){ const f=files[i];
+      try{ let text=null; try{ text=await extractText(f); }catch(ex){ bulkItems[i]={include:false,file:f.name,error:ex.message,profile:{}}; done++; setp(); return; }
+        const b64=await toBase64(f); if(!b64){ bulkItems[i]={include:false,file:f.name,error:"file empty/unreadable (download it locally if stored in cloud)",profile:{}}; done++; setp(); return; }
+        const upP=uploadWithRetry(b64,f); // resilient; runs alongside the AI call
+        let p=null,perr='';
+        try{ p=await gemini(buildParts(prompt,text,f,b64),slot); }catch(e){ perr=e.message; }
+        const up=await upP; const link=(up.status==="success"&&up.link)?up.link:'';
+        if(!p){ bulkItems[i]={include:false,file:f.name,error:perr||"parse failed",resume:link,profile:{}}; done++; setp(); return; }
+        const sc2=parseInt(p["score"])||0;
+        bulkItems[i]={ include:true, file:f.name, resume:link, profile:p,
+          name:titleCaseName(p["Candidate Name"]||''), email:p["Mail Id"]||'', phone:cleanPhone(p["Contact No"]||''), company:p["current_company"]||((p.experience&&p.experience[0])?p.experience[0].company:'')||'',
+          ctc:p["Current CTC"]||'', ectc:p["Expected CTC"]||'',
+          role:p["Role"]||'', dept:p["Department"]||'', job:(sc2>=85?(p["match_job_id"]||''):''), score:p["score"]||'', remarks:(sc2>=85?(p["remarks"]||p["Summary"]||''):('No suitable job found (best '+sc2+'%). '+(p["remarks"]||''))) };
+      }catch(e){ bulkItems[i]={include:false,file:f.name,error:e.message,profile:{}}; }
+      done++; setp(); }
+    await runPool(files.length, worker, conc);
+    busy(btn,false); el('bulkStatus').className="small text-success"; el('bulkStatus').innerText=`Done — ${bulkItems.filter(b=>b&&!b.error).length}/${files.length} parsed (×${conc} parallel). Matches below 85% are left blank for manual tagging. Review & save.`; renderBulk(); el('bulkSave').style.display='inline-block'; }
+  function runPool(n,worker,concurrency){ let idx=0; const run=async()=>{ const i=idx++; if(i>=n)return; await worker(i,i%concurrency); return run(); }; const arr=[]; for(let c=0;c<Math.min(concurrency,n);c++)arr.push(run()); return Promise.all(arr); }
+  function renderBulk(){ const jopt=id=>'<option value="">— no suitable job —</option>'+approvedOpenJobs().map(j=>`<option value="${esc(j["Job ID"])}" ${S(j["Job ID"])===S(id)?'selected':''}>${esc(j["Job ID"])} · ${esc(j["Job Title"])}</option>`).join('');
+    el('bulkReview').innerHTML=`<div class="table-responsive"><table class="table table-sm align-middle"><thead><tr><th>✓</th><th>File</th><th>Name</th><th>Email</th><th>Phone</th><th>Company</th><th>Role</th><th>Tagged job</th><th>Match</th></tr></thead><tbody>`
+      +bulkItems.map((b,i)=>b.error?`<tr class="table-danger"><td>—</td><td>${esc(b.file)}</td><td colspan="7" class="small">Failed: ${esc(b.error)}</td></tr>`
+        :`<tr><td><input type="checkbox" class="form-check-input" ${b.include?'checked':''} onchange="bulkItems[${i}].include=this.checked"></td>
+        <td class="small">${esc(b.file)}</td>
+        <td><input class="form-control form-control-sm" value="${esc(b.name)}" oninput="bulkItems[${i}].name=this.value"></td>
+        <td><input class="form-control form-control-sm" value="${esc(b.email)}" oninput="bulkItems[${i}].email=this.value"></td>
+        <td><input class="form-control form-control-sm" value="${esc(b.phone)}" oninput="bulkItems[${i}].phone=this.value"></td>
+        <td><input class="form-control form-control-sm" value="${esc(b.company)}" oninput="bulkItems[${i}].company=this.value"></td>
+        <td><input class="form-control form-control-sm" value="${esc(b.role)}" oninput="bulkItems[${i}].role=this.value"></td>
+        <td><select class="form-select form-select-sm" onchange="bulkItems[${i}].job=this.value">${jopt(b.job)}</select></td>
+        <td>${b.score?`<span class="badge" style="background:${scoreColor(b.score)}">${b.score}</span>`:'—'}</td></tr>`).join('')+`</tbody></table></div>`; }
+  async function saveBulk(btn){ const items=bulkItems.filter(b=>b&&b.include&&!b.error); if(!items.length)return alert("Nothing selected."); busy(btn,true,'Saving…');
+    const batchSource=sourceComposite('bulkSource','bulkSourceRef')||"Bulk Upload"; let ok=0,fail=0;
+    for(let n=0;n<items.length;n++){ const b=items[n]; el('bulkStatus').innerText=`Saving ${n+1}/${items.length}…`;
+      const s=parseInt(b.score)||0; const stars=s?Math.min(5,Math.max(1,Math.round(s/20))):''; const r10=s?Math.round(s/10*10)/10:'';
+      const data={action:'create',sheetName:TARGET_TAB,
+        "Candidate Code":genCode(),"Candidate Name":b.name,"Mail Id":b.email,"Contact No":b.phone,
+        "Current Company":b.company,"Role":b.role,"Designation":b.role,"Department":b.dept,
+        "Current CTC":b.ctc||"","Expected CTC":b.ectc||"",
+        "Candidate Status":"Applied","Source":batchSource,"Added By":localStorage.getItem("portalUser")||ROLE,
+        "Resume":b.resume,"Tagged Job":b.job,"AI Score":b.score,"Score Notes":b.remarks,
+        "Rating10":r10,"Stars":stars,"Profile JSON":JSON.stringify(b.profile).slice(0,49000)};
+      try{ await postJSON(data); ok++; }catch(e){ console.error(e); fail++; } }
+    busy(btn,false); modal('bulkModal').hide(); fetchData(); if(fail)alert(`Saved ${ok}, ${fail} failed — please retry the failed ones.`); }
+
+  // ── admin users ──
+  function fetchUsers(){ if(!isAdmin())return; fetch(`${API_URL}?action=userList`).then(r=>r.json()).then(res=>{if(res.status==="success"){users=res.data;renderUsers();}}).catch(e=>console.error(e)); }
+  function renderUsers(){ el('usersBody').innerHTML=users.length?users.map(u=>{ const jb=S(u.assignedJobs)?S(u.assignedJobs).split(',').map(x=>`<span class="tagchip">${esc(x.trim())}</span>`).join(' '):'<span class="text-muted small">all</span>';
+    const rt=S(u.rights)?S(u.rights).split(',').map(x=>`<span class="badge bg-info text-dark">${esc(x.trim())}</span>`).join(' '):(u.role==='Admin'?'<span class="text-muted small">all</span>':'<span class="text-muted small">—</span>');
+    return `<tr><td class="fw-semibold">${esc(u.username)}</td><td><span class="badge bg-${u.role==='Admin'?'primary':u.role==='Viewer'?'secondary':'info'}">${esc(u.role)}</span></td><td>${jb}</td><td>${rt}</td><td><button class="btn btn-sm btn-outline-warning py-0" onclick="editUser(${u.rowNumber})"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger py-0" onclick="deleteUser(${u.rowNumber})"><i class="bi bi-trash"></i></button></td></tr>`; }).join(''):'<tr><td colspan="5" class="text-muted text-center">No users.</td></tr>'; }
+  function selUserJobs(){ return [...el('uJobs').selectedOptions].map(o=>o.value).join(','); }
+  function selUserRights(){ return [el('rJob').checked?'job':'',el('rLoc').checked?'location':'',el('rCompany').checked?'company':''].filter(Boolean).join(','); }
+  function saveUser(action,btn){ if(!isAdmin())return; if(!el('uName').value||(action==='userCreate'&&!el('uPass').value))return alert("Username & password required."); busy(btn,true);
+    let url=`${API_URL}?action=${action}&username=${encodeURIComponent(el('uName').value)}&password=${encodeURIComponent(el('uPass').value)}&role=${encodeURIComponent(el('uRole').value)}&assignedJobs=${encodeURIComponent(selUserJobs())}&rights=${encodeURIComponent(selUserRights())}`; if(action==='userUpdate')url+=`&rowNumber=${el('userRow').value}`;
+    fetch(url).then(r=>r.json()).then(res=>{resetUserForm();fetchUsers();}).catch(e=>console.error(e)).finally(()=>busy(btn,false)); }
+  function editUser(rn){ const u=users.find(x=>x.rowNumber===rn);if(!u)return; el('userRow').value=rn; el('uName').value=u.username;el('uPass').value='';el('uRole').value=u.role; const set=S(u.assignedJobs).split(',').map(x=>x.trim()); [...el('uJobs').options].forEach(o=>o.selected=set.includes(o.value)); const rts=S(u.rights).toLowerCase(); el('rJob').checked=rts.indexOf('job')>=0; el('rLoc').checked=rts.indexOf('location')>=0; el('rCompany').checked=rts.indexOf('company')>=0; el('userSubmit').style.display='none';el('userUpdate').style.display='inline-block';el('userCancel').style.display='inline-block'; }
+  function deleteUser(rn){ if(!isAdmin())return; if(!confirm("Remove user?"))return; fetch(`${API_URL}?action=userDelete&rowNumber=${rn}`).then(r=>r.json()).then(()=>fetchUsers()); }
+  function resetUserForm(){ el('userRow').value='';el('uName').value='';el('uPass').value='';el('uRole').value='Recruiter'; [...el('uJobs').options].forEach(o=>o.selected=false); el('rJob').checked=false;el('rLoc').checked=false;el('rCompany').checked=false; el('userSubmit').style.display='inline-block';el('userUpdate').style.display='none';el('userCancel').style.display='none'; }
+
+  // ── interview kit (standalone) ──
+  function kitHTML(d){ return `<div class="sec-title">Screening questions</div>${(d.questions||[]).map(q=>`<div class="border-start border-primary border-3 bg-light rounded p-2 mb-2"><div class="text-primary small fw-bold text-uppercase">${esc(q.focus||'general')}</div>${esc(q.q)}</div>`).join('')}<div class="sec-title mt-3">Scorecard</div><table class="table table-sm">${(d.scorecard||[]).map(s=>`<tr><td>${esc(s.criterion)}</td><td class="text-end"><span class="badge bg-primary">${esc(s.weight)}</span></td></tr>`).join('')}</table>`; }
+  async function generateKit(btn){ const st=el('kitStatus'),out=el('kitOut'),role=el('kitRole').value; if(!role&&!el('kitJd').value){st.className="small text-danger";st.innerText="Enter a role or JD.";return;} busy(btn,true,'Building…');
+    try{ st.className="small text-primary";st.innerText="Building…";out.innerHTML=""; const d=await gemini([{text:P_KIT+"\n\nROLE: "+role+"\n\nJOB DESCRIPTION:\n"+(el('kitJd').value||"")}]); out.innerHTML=kitHTML(d); st.className="small text-success";st.innerText="Kit ready."; }
+    catch(e){console.error(e);st.className="small text-danger";st.innerText="Failed: "+e.message;} finally{busy(btn,false);} }
+
+  // ── profiles ──
+  function profileFromRecord(r){ let p={};try{p=JSON.parse(r["Profile JSON"]||"{}");}catch(e){} return {name:r["Candidate Name"]||p["Candidate Name"]||"Candidate",headline:r["Role"]||p["Role"]||r["Designation"]||"",company:r["Current Company"]||p["current_company"]||"",email:r["Mail Id"]||p["Mail Id"]||"",phone:r["Contact No"]||p["Contact No"]||"",linkedin:p["linkedin_url"]||"",summary:p["Summary"]||r["Remarks"]||"",skills:(p["Skills"]||"").split(',').map(x=>x.trim()).filter(Boolean),experience:p.experience||[],education:p.education||[],score:sc(r),stars:starsFor(r),r10:r10For(r),job:r["Tagged Job"]||"",remarks:r["Score Notes"]||"",code:r["Candidate Code"]||""}; }
+  function profileHTML(d){ const ini=(d.name.split(' ').map(x=>x[0]).join('').substring(0,2)||'CV').toUpperCase(); const stars='★'.repeat(d.stars)+'☆'.repeat(5-d.stars);
+    const skills=d.skills.map(s=>`<span class="tag">${esc(s)}</span>`).join('')||'—';
+    const exp=d.experience.map(e=>`<div class="ti"><div class="tf">${esc(e.duration||((e.start_year||'')+' – '+(e.end_year||'')))}</div><div class="rt">${esc(e.role||'')}</div><div class="cn">${esc(e.company||'')}</div><p>${esc(e.description||'')}</p></div>`).join('')||'<p>—</p>';
+    const edu=d.education.map(e=>`<div class="edu"><b>${esc(e.degree||'')}</b><br>${esc(e.institution||'')}<br><span class="yr">${esc(e.year||'')}</span></div>`).join('')||'<p>—</p>';
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(d.name)} — Profile</title><style>
+      @page{size:A4;margin:14mm} *{box-sizing:border-box} body{font-family:-apple-system,Segoe UI,Arial,sans-serif;color:#1e293b;margin:0;padding:24px}
+      .hd{display:flex;gap:20px;align-items:center;border-bottom:1px solid #e2e8f0;padding-bottom:18px}
+      .av{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#1763ff,#3b82f6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800}
+      h1{margin:0;font-size:23px}.sub{color:#64748b;margin:3px 0}
+      .badges span{display:inline-block;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:20px;padding:4px 11px;font-size:12px;margin:4px 6px 0 0}.pill{background:#eef3ff;color:#1763ff}
+      .mb{display:flex;gap:18px;align-items:center;background:#f6f9ff;border:1px solid #dbe6ff;border-radius:12px;padding:14px;margin:16px 0}
+      .ring{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:17px;background:${scoreColor(d.score)}}
+      .stars{color:#f59e0b;font-size:20px}h2{font-size:14px;text-transform:uppercase;letter-spacing:.05em;border-left:4px solid #1763ff;padding-left:10px;margin:22px 0 10px}
+      .tag{display:inline-block;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:4px 11px;font-size:12px;margin:0 6px 6px 0}
+      .ti{border-left:2px solid #e2e8f0;padding:0 0 12px 16px;margin-left:4px;position:relative}.ti:before{content:'';position:absolute;left:-7px;top:3px;width:11px;height:11px;border-radius:50%;background:#1763ff;border:2px solid #fff}
+      .tf{font-size:12px;font-weight:700;color:#1763ff}.rt{font-weight:700}.cn{color:#64748b;font-size:12px}.ti p{font-size:12px;color:#475569;margin:5px 0 0}
+      .edu{border:1px solid #e2e8f0;border-radius:10px;padding:11px;margin-bottom:9px;background:#f8fafc;font-size:12px}.yr{color:#1763ff;font-weight:700}</style></head><body>
+      <div class="hd"><div class="av">${esc(ini)}</div><div><h1>${esc(d.name)}</h1><div class="sub">${esc(d.headline)}${d.company?' · '+esc(d.company):''}</div>
+        <div class="badges">${d.code?'<span>'+esc(d.code)+'</span>':''}${d.email?'<span>✉ '+esc(d.email)+'</span>':''}${d.phone?'<span>📞 '+esc(d.phone)+'</span>':''}${d.linkedin?'<span class="pill">🔗 LinkedIn</span>':''}${d.job?'<span class="pill">Matched: '+esc(d.job)+'</span>':''}</div></div></div>
+      <div class="mb"><div class="ring">${d.score||0}</div><div><div class="stars">${stars}</div><div><b>Rating ${d.r10}/10</b></div></div><div style="flex:1;font-size:12px;color:#475569"><b>AI matching remarks:</b><br>${esc(d.remarks)||'—'}</div></div>
+      <h2>Summary</h2><p style="font-size:13px;color:#475569">${esc(d.summary)||'—'}</p><h2>Skills</h2><div>${skills}</div><h2>Experience</h2>${exp}<h2>Education</h2>${edu}
+      <p style="color:#94a3b8;font-size:11px;margin-top:26px">Generated by TalentPool ATS · ${new Date().toLocaleDateString()}</p></body></html>`; }
+  function openProfile(rn){ const r=allData.find(x=>x.rowNumber===rn); if(!r)return; el('profileFrame').srcdoc=profileHTML(profileFromRecord(r)); modal('profileModal').show(); }
+  function printProfile(){ const f=el('profileFrame'); if(f&&f.contentWindow){ f.contentWindow.focus(); f.contentWindow.print(); } }
+  function downloadHTML(fn,html){ const b=new Blob([html],{type:'text/html'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=fn;a.click();setTimeout(()=>URL.revokeObjectURL(u),2000); }
+  function downloadProfileFromForm(){ const r={};fields.forEach(f=>{const e2=el(f);if(e2)r[f]=e2.value;}); r["Profile JSON"]=el('Profile JSON').value; if(!r["Candidate Name"])return alert("Fill the form first."); downloadHTML(`${S(r["Candidate Name"]).replace(/[^\w]+/g,'_')}_Profile.html`,profileHTML(profileFromRecord(r))); }
+
+  // ── helpers ──
+  function fmtDate(v){ if(v==null||v==='')return''; const s=String(v).trim();
+    const dOnly=s.match(/^(\d{4})-(\d{2})-(\d{2})$/); if(dOnly)return dOnly[3]+'/'+dOnly[2]+'/'+dOnly[1].slice(-2);
+    if(s.indexOf('T')>0||/^\d{4}-\d{2}-\d{2}[ ]/.test(s)){ const d=new Date(s.replace(' ','T')); if(!isNaN(d))return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+String(d.getFullYear()).slice(-2); }
+    if(/^\d{2}\/\d{2}\/\d{2,4}$/.test(s))return s;
+    const d=new Date(s); if(!isNaN(d))return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+String(d.getFullYear()).slice(-2); return s.slice(0,10); }
+  function fmtDateTime(v){ if(v==null||v==='')return''; const d=new Date(String(v).trim().replace(' ','T')); if(!isNaN(d))return fmtDate(v)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); return String(v); }
+  function nowStr(){ const d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
+  const pad2=n=>('0'+n).slice(-2);
+  function to12(h,m){ const ap=h<12?'AM':'PM'; let hh=h%12; if(hh===0)hh=12; return pad2(hh)+':'+pad2(m)+' '+ap; }
+  function parseAnyDate(v){ if(v==null||v==='')return null; if(v instanceof Date)return isNaN(v)?null:v; const s=String(v).trim();
+    let m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/); if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+    if(/^\d{2}\/\d{2}\/\d{2,4}/.test(s))return null; // already display-formatted
+    let d=new Date(s.replace(' ','T')); if(!isNaN(d))return d; d=new Date(s); return isNaN(d)?null:d; }
+  // dd/mm/yy hh:mm AM/PM  (used for Screening + Interviews)
+  function fmtDateTime12(v){ const d=parseAnyDate(v); if(!d)return S(v); return pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'/'+String(d.getFullYear()).slice(-2)+' '+to12(d.getHours(),d.getMinutes()); }
+  // combine a separate date + time (interview rows store them in two columns)
+  function fmtDT(dateV,timeV){ const d=parseAnyDate(dateV); if(!d)return (S(dateV)+' '+S(timeV)).trim();
+    let h=d.getHours(),mi=d.getMinutes(); const ts=S(timeV).trim();
+    if(ts){ const tm=ts.match(/^(\d{1,2}):(\d{2})\s*([AaPp][Mm])?$/);
+      if(tm){ h=+tm[1]; mi=+tm[2]; if(tm[3]){ const pm=/p/i.test(tm[3]); if(pm&&h<12)h+=12; if(!pm&&h===12)h=0; } }
+      else { const td=parseAnyDate(ts); if(td&&/[T:]/.test(ts)){ h=td.getHours(); mi=td.getMinutes(); } } }
+    return pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'/'+String(d.getFullYear()).slice(-2)+' '+to12(h,mi); }
+  function safeJSON(t){ if(t==null)throw new Error("empty AI response"); let s=String(t).trim();
+    s=s.replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
+    try{ return JSON.parse(s); }catch(e){}
+    const a=s.indexOf('{'); if(a<0)throw new Error("no JSON in AI response");
+    let depth=0,inStr=false,esc=false;
+    for(let i=a;i<s.length;i++){ const c=s[i];
+      if(inStr){ if(esc)esc=false; else if(c==='\\')esc=true; else if(c==='"')inStr=false; }
+      else { if(c==='"')inStr=true; else if(c==='{')depth++; else if(c==='}'){ depth--; if(depth===0)return JSON.parse(s.slice(a,i+1)); } } }
+    throw new Error("could not parse AI JSON"); }
+  function titleCaseName(s){ s=S(s).trim(); if(!s)return s; if(s===s.toUpperCase()||s===s.toLowerCase())return s.toLowerCase().replace(/\b([a-z])/g,(m,c)=>c.toUpperCase()); return s; }
+  function cleanPhone(s){ const d=S(s).replace(/\D/g,''); return d.length>10?d.slice(-10):d; }
+  function fmtTime(v){ if(v===undefined||v===null||v==='')return''; const s=String(v); if(s.indexOf('T')>0){const d=new Date(s); if(!isNaN(d))return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);} const m=s.match(/(\d{1,2}):(\d{2})/); return m?(('0'+m[1]).slice(-2)+':'+m[2]):s; }
+  function scoreColor(s){s=parseInt(s)||0;return s>=75?'#16a34a':s>=50?'#f59e0b':'#ef4444';}
+  function S(v){return v==null?'':String(v);}
+  function setVal(id,v){const e2=el(id);if(e2&&v!==undefined&&v!=='')e2.value=v;}
+  function esc(s){return s==null?'':String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));}
+  function logout(){['portalSession','portalUser','portalRole','portalJobs'].forEach(k=>localStorage.removeItem(k));window.location.href="login.html";}
+</script>
+</body>
+</html>
